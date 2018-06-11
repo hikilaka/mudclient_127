@@ -1,0 +1,32 @@
+
+<project default="compile" basedir=".">	
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	<property name="jar" location="mudclient.jar" />
+	
+	<target name="compile">
+		<delete file="${jar}" />
+        <delete dir="${build}"/>
+        <mkdir dir="${build}"/>
+		
+		<javac srcdir="${src}" destdir="${build}" debug="on">
+		  <classpath>
+			<pathelement path="${java.class.path}/"/>
+		  </classpath>
+		</javac>
+		<jar basedir="${build}" destfile="${jar}">
+			<manifest>
+				<attribute name="Main-Class" value="mudclient" />
+			</manifest>
+        </jar>
+	</target>
+
+	<target name="run">
+		<java classname="mudclient" fork="true">
+			<arg value="${settings}" />
+			<classpath>
+				<pathelement path="${jar}/" />
+			</classpath>
+		</java>
+	</target>	
+</project>
