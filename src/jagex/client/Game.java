@@ -30,6 +30,7 @@ public abstract class Game extends Applet implements Runnable {
 	private boolean is_applet;
 	private int kill_state;
 	private int lag_accum;
+	protected int fps = 0;
 	public int mouse_y_offset;
 	public int idle_counter;
 	public int loading_stage = 1;
@@ -466,14 +467,18 @@ public abstract class Game extends Applet implements Runnable {
 			lag_accum -= 1;
 			elapsed &= 255;
 
-			this.render();
+			if (period > 0) {
+				fps = (1000 * step) / (period * 256);
+			}
+			
+			render();
 		}
 
-		if (this.kill_state == -1) {
-			this.close();
+		if (kill_state == -1) {
+			close();
 		}
 
-		this.tick_thread = null;
+		tick_thread = null;
 	}
 
 	@Override
