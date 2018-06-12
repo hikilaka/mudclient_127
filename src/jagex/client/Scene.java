@@ -571,7 +571,7 @@ public final class Scene {
 										cnt += model.project_vert_z[verts[k]];
 									}
 
-									poly.depth = cnt / vert_cnt + model.field_279;
+									poly.depth = cnt / vert_cnt + model.depth;
 									poly.texture = text;
 									poly_cnt += 1;
 								}
@@ -639,7 +639,7 @@ public final class Scene {
 					if (picking_active && picked_cnt < max_picked) {
 						c_x += (sprite_trans_x[face] << view_dist) / a_z;
 						
-						if (click_y >= c_y && click_y <= c_y + h && click_x >= c_x && click_x <= c_x + w && !model.field_297 && model.is_local_player[face] == 0) {
+						if (click_y >= c_y && click_y <= c_y + h && click_x >= c_x && click_x <= c_x + w && !model.unpickable && model.is_local_player[face] == 0) {
 							picked_models[picked_cnt] = model;
 							picked_faces[picked_cnt] = face;
 							picked_cnt += 1;
@@ -1355,7 +1355,7 @@ public final class Scene {
 				&& this.click_y < this.max_y) {
 			var50 = this.scanlines[this.click_y];
 			if (this.click_x >= var50.field_672 >> 8 && this.click_x <= var50.field_673 >> 8
-					&& var50.field_672 <= var50.field_673 && !model.field_297 && model.is_local_player[face] == 0) {
+					&& var50.field_672 <= var50.field_673 && !model.unpickable && model.is_local_player[face] == 0) {
 				this.picked_models[this.picked_cnt] = model;
 				this.picked_faces[this.picked_cnt] = face;
 				++this.picked_cnt;
@@ -1448,7 +1448,7 @@ public final class Scene {
 					var33 = 2;
 				}
 
-				if (var8.field_289) {
+				if (var8.trans_texture) {
 					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
 						var34 = this.scanlines[var1];
 						var2 = var34.field_672 >> 8;
@@ -1590,7 +1590,7 @@ public final class Scene {
 					var33 = 2;
 				}
 
-				if (var8.field_289) {
+				if (var8.trans_texture) {
 					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
 						var34 = this.scanlines[var1];
 						var2 = var34.field_672 >> 8;
@@ -3368,7 +3368,7 @@ public final class Scene {
 		}
 
 		for (int var6 = 0; var6 < this.model_cnt; ++var6) {
-			this.models[var6].method_253(ambient, falloff, x, y, z);
+			this.models[var6].set_light(ambient, falloff, x, y, z);
 		}
 	}
 

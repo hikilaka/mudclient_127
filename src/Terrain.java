@@ -1114,7 +1114,7 @@ public class Terrain {
 						var11 = 0;
 					}
 
-					var12 = var40.get_vert(var9 * 128, var11, var10 * 128);
+					var12 = var40.vert_get(var9 * 128, var11, var10 * 128);
 					var13 = (int) (Math.random() * 10.0D) - 5;
 					var40.set_vert_ambient(var12, var13);
 				}
@@ -1264,11 +1264,11 @@ public class Terrain {
 					if (this.method_96(var11, var12, var3) > 0
 							&& Config.tile_type[this.method_96(var11, var12, var3) - 1] == 4) {
 						var13 = Config.tile_decoration[this.method_96(var11, var12, var3) - 1];
-						var14 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
-						var15 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
-						var43 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
+						var14 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
+						var15 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
+						var43 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
 								(var12 + 1) * 128);
-						var17 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
+						var17 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
 						var41 = new int[] { var14, var15, var43, var17 };
 						var42 = var40.face_add(4, var41, var13, 12345678);
 						this.field_92[var42] = var11;
@@ -1280,11 +1280,11 @@ public class Terrain {
 						if (this.method_96(var11, var12 + 1, var3) > 0
 								&& Config.tile_type[this.method_96(var11, var12 + 1, var3) - 1] == 4) {
 							var13 = Config.tile_decoration[this.method_96(var11, var12 + 1, var3) - 1];
-							var14 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
-							var15 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
-							var43 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
+							var14 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
+							var15 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
+							var43 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
 									(var12 + 1) * 128);
-							var17 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
+							var17 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
 							var41 = new int[] { var14, var15, var43, var17 };
 							var42 = var40.face_add(4, var41, var13, 12345678);
 							this.field_92[var42] = var11;
@@ -1296,11 +1296,11 @@ public class Terrain {
 						if (this.method_96(var11, var12 - 1, var3) > 0
 								&& Config.tile_type[this.method_96(var11, var12 - 1, var3) - 1] == 4) {
 							var13 = Config.tile_decoration[this.method_96(var11, var12 - 1, var3) - 1];
-							var14 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
-							var15 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
-							var43 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
+							var14 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
+							var15 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
+							var43 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
 									(var12 + 1) * 128);
-							var17 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
+							var17 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
 							var41 = new int[] { var14, var15, var43, var17 };
 							var42 = var40.face_add(4, var41, var13, 12345678);
 							this.field_92[var42] = var11;
@@ -1312,11 +1312,11 @@ public class Terrain {
 						if (this.method_96(var11 + 1, var12, var3) > 0
 								&& Config.tile_type[this.method_96(var11 + 1, var12, var3) - 1] == 4) {
 							var13 = Config.tile_decoration[this.method_96(var11 + 1, var12, var3) - 1];
-							var14 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
-							var15 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
-							var43 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
+							var14 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
+							var15 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
+							var43 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
 									(var12 + 1) * 128);
-							var17 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
+							var17 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
 							var41 = new int[] { var14, var15, var43, var17 };
 							var42 = var40.face_add(4, var41, var13, 12345678);
 							this.field_92[var42] = var11;
@@ -1328,11 +1328,11 @@ public class Terrain {
 						if (this.method_96(var11 - 1, var12, var3) > 0
 								&& Config.tile_type[this.method_96(var11 - 1, var12, var3) - 1] == 4) {
 							var13 = Config.tile_decoration[this.method_96(var11 - 1, var12, var3) - 1];
-							var14 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
-							var15 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
-							var43 = var40.get_vert((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
+							var14 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12), var12 * 128);
+							var15 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12), var12 * 128);
+							var43 = var40.vert_get((var11 + 1) * 128, -this.tile_height(var11 + 1, var12 + 1),
 									(var12 + 1) * 128);
-							var17 = var40.get_vert(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
+							var17 = var40.vert_get(var11 * 128, -this.tile_height(var11, var12 + 1), (var12 + 1) * 128);
 							var41 = new int[] { var14, var15, var43, var17 };
 							var42 = var40.face_add(4, var41, var13, 12345678);
 							this.field_92[var42] = var11;
@@ -1345,7 +1345,7 @@ public class Terrain {
 			}
 
 			var40.set_light(true, 40, 48, -50, -10, -50);
-			ground = mesh.split(0, 0, 1536, 1536, 8, 64, 233, false);
+			ground = mesh.split(1536, 1536, 8, 64, 233, false);
 
 			for (var12 = 0; var12 < 64; ++var12) {
 				scene.add(ground[var12]);
@@ -1427,7 +1427,7 @@ public class Terrain {
 		}
 
 		this.mesh.set_light(false, 60, 24, -50, -10, -50);
-		this.walls[var3] = this.mesh.split(0, 0, 1536, 1536, 8, 64, 338, true);
+		this.walls[var3] = this.mesh.split(1536, 1536, 8, 64, 338, true);
 
 		for (var9 = 0; var9 < 64; ++var9) {
 			this.scene.add(this.walls[var3][var9]);
@@ -1669,33 +1669,33 @@ public class Terrain {
 					int[] var44;
 					if (this.method_100(var12, var13) > 12000 && this.method_100(var12, var13) < 24000
 							&& this.method_101(var12 - 1, var13 - 1) == 0) {
-						var44 = new int[] { this.mesh.get_vert(var29, var33, var26),
-								this.mesh.get_vert(var27, var34, var30), this.mesh.get_vert(var25, var32, var28) };
+						var44 = new int[] { this.mesh.vert_get(var29, var33, var26),
+								this.mesh.vert_get(var27, var34, var30), this.mesh.vert_get(var25, var32, var28) };
 						this.mesh.face_add(3, var44, var14, 12345678);
 					} else if (this.method_100(var12, var13) > 12000 && this.method_100(var12, var13) < 24000
 							&& this.method_101(var12 + 1, var13 + 1) == 0) {
-						var44 = new int[] { this.mesh.get_vert(var23, var31, var24),
-								this.mesh.get_vert(var25, var32, var28), this.mesh.get_vert(var27, var34, var30) };
+						var44 = new int[] { this.mesh.vert_get(var23, var31, var24),
+								this.mesh.vert_get(var25, var32, var28), this.mesh.vert_get(var27, var34, var30) };
 						this.mesh.face_add(3, var44, var14, 12345678);
 					} else if (this.method_100(var12, var13) > 0 && this.method_100(var12, var13) < 12000
 							&& this.method_101(var12 + 1, var13 - 1) == 0) {
-						var44 = new int[] { this.mesh.get_vert(var27, var34, var30),
-								this.mesh.get_vert(var23, var31, var24), this.mesh.get_vert(var29, var33, var26) };
+						var44 = new int[] { this.mesh.vert_get(var27, var34, var30),
+								this.mesh.vert_get(var23, var31, var24), this.mesh.vert_get(var29, var33, var26) };
 						this.mesh.face_add(3, var44, var14, 12345678);
 					} else if (this.method_100(var12, var13) > 0 && this.method_100(var12, var13) < 12000
 							&& this.method_101(var12 - 1, var13 + 1) == 0) {
-						var44 = new int[] { this.mesh.get_vert(var25, var32, var28),
-								this.mesh.get_vert(var29, var33, var26), this.mesh.get_vert(var23, var31, var24) };
+						var44 = new int[] { this.mesh.vert_get(var25, var32, var28),
+								this.mesh.vert_get(var29, var33, var26), this.mesh.vert_get(var23, var31, var24) };
 						this.mesh.face_add(3, var44, var14, 12345678);
 					} else if (var31 == var32 && var33 == var34) {
-						var44 = new int[] { this.mesh.get_vert(var23, var31, var24),
-								this.mesh.get_vert(var25, var32, var28), this.mesh.get_vert(var29, var33, var26),
-								this.mesh.get_vert(var27, var34, var30) };
+						var44 = new int[] { this.mesh.vert_get(var23, var31, var24),
+								this.mesh.vert_get(var25, var32, var28), this.mesh.vert_get(var29, var33, var26),
+								this.mesh.vert_get(var27, var34, var30) };
 						this.mesh.face_add(4, var44, var14, 12345678);
 					} else if (var31 == var34 && var32 == var33) {
-						var44 = new int[] { this.mesh.get_vert(var27, var34, var30),
-								this.mesh.get_vert(var23, var31, var24), this.mesh.get_vert(var25, var32, var28),
-								this.mesh.get_vert(var29, var33, var26) };
+						var44 = new int[] { this.mesh.vert_get(var27, var34, var30),
+								this.mesh.vert_get(var23, var31, var24), this.mesh.vert_get(var25, var32, var28),
+								this.mesh.vert_get(var29, var33, var26) };
 						this.mesh.face_add(4, var44, var14, 12345678);
 					} else {
 						boolean var37 = true;
@@ -1710,22 +1710,22 @@ public class Terrain {
 						int[] var38;
 						int[] var39;
 						if (!var37) {
-							var38 = new int[] { this.mesh.get_vert(var25, var32, var28),
-									this.mesh.get_vert(var29, var33, var26),
-									this.mesh.get_vert(var23, var31, var24) };
+							var38 = new int[] { this.mesh.vert_get(var25, var32, var28),
+									this.mesh.vert_get(var29, var33, var26),
+									this.mesh.vert_get(var23, var31, var24) };
 							this.mesh.face_add(3, var38, var14, 12345678);
-							var39 = new int[] { this.mesh.get_vert(var27, var34, var30),
-									this.mesh.get_vert(var23, var31, var24),
-									this.mesh.get_vert(var29, var33, var26) };
+							var39 = new int[] { this.mesh.vert_get(var27, var34, var30),
+									this.mesh.vert_get(var23, var31, var24),
+									this.mesh.vert_get(var29, var33, var26) };
 							this.mesh.face_add(3, var39, var14, 12345678);
 						} else {
-							var38 = new int[] { this.mesh.get_vert(var23, var31, var24),
-									this.mesh.get_vert(var25, var32, var28),
-									this.mesh.get_vert(var27, var34, var30) };
+							var38 = new int[] { this.mesh.vert_get(var23, var31, var24),
+									this.mesh.vert_get(var25, var32, var28),
+									this.mesh.vert_get(var27, var34, var30) };
 							this.mesh.face_add(3, var38, var14, 12345678);
-							var39 = new int[] { this.mesh.get_vert(var29, var33, var26),
-									this.mesh.get_vert(var27, var34, var30),
-									this.mesh.get_vert(var25, var32, var28) };
+							var39 = new int[] { this.mesh.vert_get(var29, var33, var26),
+									this.mesh.vert_get(var27, var34, var30),
+									this.mesh.vert_get(var25, var32, var28) };
 							this.mesh.face_add(3, var39, var14, 12345678);
 						}
 					}
@@ -1734,7 +1734,7 @@ public class Terrain {
 		}
 
 		this.mesh.set_light(true, 50, 50, -50, -10, -50);
-		this.rooves[var3] = this.mesh.split(0, 0, 1536, 1536, 8, 64, 169, true);
+		this.rooves[var3] = this.mesh.split(1536, 1536, 8, 64, 169, true);
 
 		for (var13 = 0; var13 < 64; ++var13) {
 			this.scene.add(this.rooves[var3][var13]);
@@ -1767,13 +1767,13 @@ public class Terrain {
 					}
 
 					this.obj_plot(var2, var3, var4);
-					Model var8 = var1[Config.obj_model[var4]].method_275(false, true, false, false);
+					Model var8 = var1[Config.obj_model[var4]].copy(false, true, false, false);
 					int var9 = (var2 + var2 + var6) * 128 / 2;
 					int var10 = (var3 + var3 + var7) * 128 / 2;
-					var8.method_258(var9, -this.calc_z(var9, var10), var10);
-					var8.method_257(0, this.method_102(var2, var3) * 32, 0);
+					var8.translate(var9, -this.calc_z(var9, var10), var10);
+					var8.orient(0, this.method_102(var2, var3) * 32, 0);
 					this.scene.add(var8);
-					var8.method_253(48, 48, -50, -10, -50);
+					var8.set_light(48, 48, -50, -10, -50);
 					if (var6 > 1 || var7 > 1) {
 						for (int var11 = var2; var11 < var2 + var6; ++var11) {
 							for (int var12 = var3; var12 < var3 + var7; ++var12) {
@@ -1815,10 +1815,10 @@ public class Terrain {
 		int var11 = var4 * 128;
 		int var12 = var5 * 128;
 		int var13 = var6 * 128;
-		int var14 = var1.get_vert(var10, -this.field_96[var3][var4], var11);
-		int var15 = var1.get_vert(var10, -this.field_96[var3][var4] - var7, var11);
-		int var16 = var1.get_vert(var12, -this.field_96[var5][var6] - var7, var13);
-		int var17 = var1.get_vert(var12, -this.field_96[var5][var6], var13);
+		int var14 = var1.vert_get(var10, -this.field_96[var3][var4], var11);
+		int var15 = var1.vert_get(var10, -this.field_96[var3][var4] - var7, var11);
+		int var16 = var1.vert_get(var12, -this.field_96[var5][var6] - var7, var13);
+		int var17 = var1.vert_get(var12, -this.field_96[var5][var6], var13);
 		int[] var18 = new int[] { var14, var15, var16, var17 };
 		int var19 = var1.face_add(4, var18, var8, var9);
 		if (Config.bound_invis[var2] == 5) {

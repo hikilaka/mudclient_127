@@ -1,613 +1,566 @@
 package jagex;
 
-public class BZ2 {
-	static final int field_529 = 1;
-	static final int field_530 = 2;
-	static final int field_531 = 10;
-	static final int field_532 = 14;
-	static final int field_533 = 0;
-	static final int field_534 = 4;
-	static final int field_535 = 4096;
-	static final int field_536 = 16;
-	static final int field_537 = 258;
-	static final int field_538 = 23;
-	static final int field_539 = 0;
-	static final int field_540 = 1;
-	static final int field_541 = 6;
-	static final int field_542 = 50;
-	static final int field_543 = 4;
-	static final int field_544 = 18002;
+public final class BZ2 {
 
-	public static int decompress(byte[] out, int out_sz, byte[] in, int in_sz, int in_off) {
-		BZ2Context ctx = new BZ2Context();
-		ctx.in_buf = in;
-		ctx.in_buf_pos = in_off;
-		ctx.out_buf = out;
-		ctx.field_226 = 0;
-		ctx.in_buf_sz = in_sz;
-		ctx.out_buf_sz = out_sz;
-		ctx.in_buf_bit_cnt = 0;
-		ctx.in_buf_bits = 0;
-		ctx.field_223 = 0;
-		ctx.field_224 = 0;
-		ctx.field_228 = 0;
-		ctx.field_229 = 0;
-		ctx.field_236 = 0;
-		
-		do_decode(ctx);
-		
-		out_sz -= ctx.out_buf_sz;
-		return out_sz;
+	public static int decompress(byte out[], int out_size, byte in[], int in_size, int offset) {
+		BZState block = new BZState();
+		block.input = in;
+		block.next_in = offset;
+		block.output = out;
+		block.avail_out = 0;
+		block.avail_in = in_size;
+		block.decompressed_size = out_size;
+		block.bs_live = 0;
+		block.bs_buff = 0;
+		block.total_in_lo32 = 0;
+		block.total_in_hi32 = 0;
+		block.total_out_lo32 = 0;
+		block.total_out_hi32 = 0;
+		block.block_no = 0;
+		decompress(block);
+		out_size -= block.decompressed_size;
+		return out_size;
 	}
 
-	private static void method_330(BZ2Context var0) {
-		byte var2 = var0.field_230;
-		int var3 = var0.field_231;
-		int var4 = var0.field_241;
-		int var5 = var0.field_239;
-		int[] var6 = BZ2Context.d_buf;
-		int var7 = var0.field_238;
-		byte[] var8 = var0.out_buf;
-		int var9 = var0.field_226;
-		int var10 = var0.out_buf_sz;
-		int var12 = var0.field_258 + 1;
-
-		label67: while (true) {
-			if (var3 > 0) {
-				while (true) {
-					if (var10 == 0) {
-						break label67;
+	private static void next_header(BZState state) {
+		byte c_state_out_ch = state.state_out_ch;
+		int c_state_out_len = state.state_out_len;
+		int c_nblock_used = state.nblock_used;
+		int c_k0 = state.k0;
+		int c_tt[] = state.tt;
+		int c_tpos = state.tpos;
+		byte output[] = state.output;
+		int cs_next_out = state.avail_out;
+		int cs_avail_out = state.decompressed_size;
+		int asdasdasd = cs_avail_out;
+		int s_save_nblockPP = state.save_nblock + 1;
+		return_notr: do {
+			if (c_state_out_len > 0) {
+				do {
+					if (cs_avail_out == 0) {
+						break return_notr;
 					}
-
-					if (var3 == 1) {
-						if (var10 == 0) {
-							var3 = 1;
-							break label67;
-						}
-
-						var8[var9] = var2;
-						++var9;
-						--var10;
+					if (c_state_out_len == 1) {
 						break;
 					}
-
-					var8[var9] = var2;
-					--var3;
-					++var9;
-					--var10;
-				}
-			}
-
-			boolean var14 = true;
-
-			byte var1;
-			while (var14) {
-				var14 = false;
-				if (var4 == var12) {
-					var3 = 0;
-					break label67;
-				}
-
-				var2 = (byte) var5;
-				var7 = var6[var7];
-				var1 = (byte) (var7 & 255);
-				var7 >>= 8;
-				++var4;
-				if (var1 != var5) {
-					var5 = var1;
-					if (var10 == 0) {
-						var3 = 1;
-						break label67;
-					}
-
-					var8[var9] = var2;
-					++var9;
-					--var10;
-					var14 = true;
-				} else if (var4 == var12) {
-					if (var10 == 0) {
-						var3 = 1;
-						break label67;
-					}
-
-					var8[var9] = var2;
-					++var9;
-					--var10;
-					var14 = true;
-				}
-			}
-
-			var3 = 2;
-			var7 = var6[var7];
-			var1 = (byte) (var7 & 255);
-			var7 >>= 8;
-			++var4;
-			if (var4 != var12) {
-				if (var1 != var5) {
-					var5 = var1;
-				} else {
-					var3 = 3;
-					var7 = var6[var7];
-					var1 = (byte) (var7 & 255);
-					var7 >>= 8;
-					++var4;
-					if (var4 != var12) {
-						if (var1 != var5) {
-							var5 = var1;
-						} else {
-							var7 = var6[var7];
-							var1 = (byte) (var7 & 255);
-							var7 >>= 8;
-							++var4;
-							var3 = (var1 & 255) + 4;
-							var7 = var6[var7];
-							var5 = (byte) (var7 & 255);
-							var7 >>= 8;
-							++var4;
-						}
-					}
-				}
-			}
-		}
-
-		int var13 = var0.field_228;
-		var0.field_228 += var10 - var10;
-		if (var0.field_228 < var13) {
-			++var0.field_229;
-		}
-
-		var0.field_230 = var2;
-		var0.field_231 = var3;
-		var0.field_241 = var4;
-		var0.field_239 = var5;
-		BZ2Context.d_buf = var6;
-		var0.field_238 = var7;
-		var0.out_buf = var8;
-		var0.field_226 = var9;
-		var0.out_buf_sz = var10;
-	}
-
-
-	private static void do_decode(BZ2Context ctx) {
-		int var23 = 0;
-		int[] var24 = null;
-		int[] var25 = null;
-		int[] var26 = null;
-
-		ctx.block_sz = 1;
-		
-		if (BZ2Context.d_buf == null) {
-			BZ2Context.d_buf = new int[ctx.block_sz * 100000];
-		}
-
-		boolean var27 = true;
-
-		while (true) {
-			while (var27) {
-				byte var1 = get_byte(ctx);
-
-				if (var1 == 23) {
-					return;
-				}
-
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				++ctx.field_236;
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_byte(ctx);
-				var1 = get_bit(ctx);
-				if (var1 != 0) {
-					ctx.field_232 = true;
-				} else {
-					ctx.field_232 = false;
-				}
-
-				if (ctx.field_232) {
-					System.out.println("PANIC! RANDOMISED BLOCK!");
-				}
-
-				ctx.field_237 = 0;
-				var1 = get_byte(ctx);
-				ctx.field_237 = ctx.field_237 << 8 | var1 & 255;
-				var1 = get_byte(ctx);
-				ctx.field_237 = ctx.field_237 << 8 | var1 & 255;
-				var1 = get_byte(ctx);
-				ctx.field_237 = ctx.field_237 << 8 | var1 & 255;
-
-				int var42;
-				for (var42 = 0; var42 < 16; ++var42) {
-					var1 = get_bit(ctx);
-					if (var1 == 1) {
-						ctx.field_247[var42] = true;
-					} else {
-						ctx.field_247[var42] = false;
-					}
-				}
-
-				for (var42 = 0; var42 < 256; ++var42) {
-					ctx.field_246[var42] = false;
-				}
-
-				int var43;
-				for (var42 = 0; var42 < 16; ++var42) {
-					if (ctx.field_247[var42]) {
-						for (var43 = 0; var43 < 16; ++var43) {
-							var1 = get_bit(ctx);
-							if (var1 == 1) {
-								ctx.field_246[var42 * 16 + var43] = true;
-							}
-						}
-					}
-				}
-
-				method_336(ctx);
-				int var45 = ctx.field_245 + 2;
-				int var46 = get_bits(3, ctx);
-				int var47 = get_bits(15, ctx);
-
-				for (var42 = 0; var42 < var47; ++var42) {
-					var43 = 0;
-
-					while (true) {
-						var1 = get_bit(ctx);
-						if (var1 == 0) {
-							ctx.field_252[var42] = (byte) var43;
-							break;
-						}
-
-						++var43;
-					}
-				}
-
-				byte[] var28 = new byte[6];
-
-				byte var30;
-				for (var30 = 0; var30 < var46; var28[var30] = var30++) {
-					;
-				}
-
-				for (var42 = 0; var42 < var47; ++var42) {
-					var30 = ctx.field_252[var42];
-
-					byte var29;
-					for (var29 = var28[var30]; var30 > 0; --var30) {
-						var28[var30] = var28[var30 - 1];
-					}
-
-					var28[0] = var29;
-					ctx.field_251[var42] = var29;
-				}
-
-				int var44;
-				for (var44 = 0; var44 < var46; ++var44) {
-					int var57 = get_bits(5, ctx);
-
-					for (var42 = 0; var42 < var45; ++var42) {
-						while (true) {
-							var1 = get_bit(ctx);
-							if (var1 == 0) {
-								ctx.field_253[var44][var42] = (byte) var57;
-								break;
-							}
-
-							var1 = get_bit(ctx);
-							if (var1 == 0) {
-								++var57;
-							} else {
-								--var57;
-							}
-						}
-					}
-				}
-
-				for (var44 = 0; var44 < var46; ++var44) {
-					byte var2 = 32;
-					byte var3 = 0;
-
-					for (var42 = 0; var42 < var45; ++var42) {
-						if (ctx.field_253[var44][var42] > var3) {
-							var3 = ctx.field_253[var44][var42];
-						}
-
-						if (ctx.field_253[var44][var42] < var2) {
-							var2 = ctx.field_253[var44][var42];
-						}
-					}
-
-					method_337(ctx.field_254[var44], ctx.field_255[var44], ctx.field_256[var44],
-							ctx.field_253[var44], var2, var3, var45);
-					ctx.field_257[var44] = var2;
-				}
-
-				int var48 = ctx.field_245 + 1;
-				int var53 = 100000 * ctx.block_sz;
-				int var49 = -1;
-				byte var50 = 0;
-
-				for (var42 = 0; var42 <= 255; ++var42) {
-					ctx.crc32_table[var42] = 0;
-				}
-
-				int var33 = 4095;
-
-				for (int var31 = 15; var31 >= 0; --var31) {
-					for (int var32 = 15; var32 >= 0; --var32) {
-						ctx.not_out_buf[var33] = (byte) (var31 * 16 + var32);
-						--var33;
-					}
-
-					ctx.field_250[var31] = var33 + 1;
-				}
-
-				int var54 = 0;
-				byte var61;
-				if (var50 == 0) {
-					++var49;
-					var50 = 50;
-					var61 = ctx.field_251[var49];
-					var23 = ctx.field_257[var61];
-					var24 = ctx.field_254[var61];
-					var26 = ctx.field_256[var61];
-					var25 = ctx.field_255[var61];
-				}
-
-				int sym_cnt = var50 - 1;
-				int var58 = var23;
-
-				int var59;
-				byte var60;
-				for (var59 = get_bits(var23, ctx); var59 > var24[var58]; var59 = var59 << 1 | var60) {
-					++var58;
-					var60 = get_bit(ctx);
-				}
-
-				int var52 = var26[var59 - var25[var58]];
-
-				while (true) {
-					while (var52 != var48) {
-						if (var52 != 0 && var52 != 1) {
-							int var40 = var52 - 1;
-							int var37;
-							if (var40 < 16) {
-								var37 = ctx.field_250[0];
-
-								for (var1 = ctx.not_out_buf[var37 + var40]; var40 > 3; var40 -= 4) {
-									int var41 = var37 + var40;
-									ctx.not_out_buf[var41] = ctx.not_out_buf[var41 - 1];
-									ctx.not_out_buf[var41 - 1] = ctx.not_out_buf[var41 - 2];
-									ctx.not_out_buf[var41 - 2] = ctx.not_out_buf[var41 - 3];
-									ctx.not_out_buf[var41 - 3] = ctx.not_out_buf[var41 - 4];
-								}
-
-								while (var40 > 0) {
-									ctx.not_out_buf[var37 + var40] = ctx.not_out_buf[var37 + var40 - 1];
-									--var40;
-								}
-
-								ctx.not_out_buf[var37] = var1;
-							} else {
-								int var38 = var40 / 16;
-								int var39 = var40 % 16;
-								var37 = ctx.field_250[var38] + var39;
-
-								for (var1 = ctx.not_out_buf[var37]; var37 > ctx.field_250[var38]; --var37) {
-									ctx.not_out_buf[var37] = ctx.not_out_buf[var37 - 1];
-								}
-
-								++ctx.field_250[var38];
-
-								while (var38 > 0) {
-									--ctx.field_250[var38];
-									ctx.not_out_buf[ctx.field_250[var38]] = ctx.not_out_buf[ctx.field_250[var38 - 1]
-											+ 16 - 1];
-									--var38;
-								}
-
-								--ctx.field_250[0];
-								ctx.not_out_buf[ctx.field_250[0]] = var1;
-								if (ctx.field_250[0] == 0) {
-									int var36 = 4095;
-
-									for (int var34 = 15; var34 >= 0; --var34) {
-										for (int var35 = 15; var35 >= 0; --var35) {
-											ctx.not_out_buf[var36] = ctx.not_out_buf[ctx.field_250[var34] + var35];
-											--var36;
-										}
-
-										ctx.field_250[var34] = var36 + 1;
-									}
-								}
-							}
-
-							++ctx.crc32_table[ctx.field_248[var1 & 255] & 255];
-							BZ2Context.d_buf[var54] = ctx.field_248[var1 & 255] & 255;
-							++var54;
-							if (sym_cnt == 0) {
-								++var49;
-								sym_cnt = 50;
-								var61 = ctx.field_251[var49];
-								var23 = ctx.field_257[var61];
-								var24 = ctx.field_254[var61];
-								var26 = ctx.field_256[var61];
-								var25 = ctx.field_255[var61];
-							}
-
-							--sym_cnt;
-							var58 = var23;
-
-							for (var59 = get_bits(var23, ctx); var59 > var24[var58]; var59 = var59 << 1 | var60) {
-								++var58;
-								var60 = get_bit(ctx);
-							}
-
-							var52 = var26[var59 - var25[var58]];
-						} else {
-							int var55 = -1;
-							int var56 = 1;
-
-							do {
-								if (var52 == 0) {
-									var55 += var56;
-								} else if (var52 == 1) {
-									var55 += 2 * var56;
-								}
-
-								var56 *= 2;
-
-								if (sym_cnt == 0) {
-									++var49;
-									sym_cnt = 50;
-									var61 = ctx.field_251[var49];
-									var23 = ctx.field_257[var61];
-									var24 = ctx.field_254[var61];
-									var26 = ctx.field_256[var61];
-									var25 = ctx.field_255[var61];
-								}
-
-								--sym_cnt;
-								var58 = var23;
-
-								for (var59 = get_bits(var23, ctx); var59 > var24[var58]; var59 = var59 << 1
-										| var60) {
-									++var58;
-									var60 = get_bit(ctx);
-								}
-
-								var52 = var26[var59 - var25[var58]];
-							} while (var52 == 0 || var52 == 1);
-
-							++var55;
-							var1 = ctx.field_248[ctx.not_out_buf[ctx.field_250[0]] & 255];
-
-							for (ctx.crc32_table[var1 & 255] += var55; var55 > 0; --var55) {
-								BZ2Context.d_buf[var54] = var1 & 255;
-								++var54;
-							}
-						}
-					}
-
-					ctx.field_231 = 0;
-					ctx.field_230 = 0;
-					ctx.field_242[0] = 0;
-
-					for (var42 = 1; var42 <= 256; ++var42) {
-						ctx.field_242[var42] = ctx.crc32_table[var42 - 1];
-					}
-
-					for (var42 = 1; var42 <= 256; ++var42) {
-						ctx.field_242[var42] += ctx.field_242[var42 - 1];
-					}
-
-					for (var42 = 0; var42 < var54; ++var42) {
-						var1 = (byte) (BZ2Context.d_buf[var42] & 255);
-						BZ2Context.d_buf[ctx.field_242[var1 & 255]] |= var42 << 8;
-						++ctx.field_242[var1 & 255];
-					}
-
-					ctx.field_238 = BZ2Context.d_buf[ctx.field_237] >> 8;
-					ctx.field_241 = 0;
-					ctx.field_238 = BZ2Context.d_buf[ctx.field_238];
-					ctx.field_239 = (byte) (ctx.field_238 & 255);
-					ctx.field_238 >>= 8;
-					++ctx.field_241;
-					ctx.field_258 = var54;
-					method_330(ctx);
-					if (ctx.field_241 == ctx.field_258 + 1 && ctx.field_231 == 0) {
-						var27 = true;
-						break;
-					}
-
-					var27 = false;
+					output[cs_next_out] = c_state_out_ch;
+					c_state_out_len--;
+					cs_next_out++;
+					cs_avail_out--;
+				} while (true);
+				if (cs_avail_out == 0) {
+					c_state_out_len = 1;
 					break;
 				}
+				output[cs_next_out] = c_state_out_ch;
+				cs_next_out++;
+				cs_avail_out--;
 			}
-
-			return;
-		}
-	}
-
-	private static byte get_byte(BZ2Context ctx) {
-		return (byte) get_bits(8, ctx);
-	}
-
-	private static byte get_bit(BZ2Context ctx) {
-		return (byte) get_bits(1, ctx);
-	}
-
-	private static int get_bits(int bits_wanted, BZ2Context ctx) {
-		while (ctx.in_buf_bit_cnt < bits_wanted) {
-			ctx.in_buf_bits = ctx.in_buf_bits << 8 | ctx.in_buf[ctx.in_buf_pos] & 255;
-			ctx.in_buf_bit_cnt += 8;
-			++ctx.in_buf_pos;
-			--ctx.in_buf_sz;
-			++ctx.field_223;
 			
-			if (ctx.field_223 == 0) {
-				++ctx.field_224;
+			boolean flag = true;
+			while (flag) {
+				flag = false;
+				if (c_nblock_used == s_save_nblockPP) {
+					c_state_out_len = 0;
+					break return_notr;
+				}
+				
+				c_state_out_ch = (byte) c_k0;
+				c_tpos = c_tt[c_tpos];
+				byte k1 = (byte) (c_tpos & 0xff);
+				c_tpos >>= 8;
+				c_nblock_used++;
+				
+				if (k1 != c_k0) {
+					c_k0 = k1;
+					
+					if (cs_avail_out == 0) {
+						c_state_out_len = 1;
+					} else {
+						output[cs_next_out] = c_state_out_ch;
+						cs_next_out++;
+						cs_avail_out--;
+						flag = true;
+						continue;
+					}
+					break return_notr;
+				}
+				if (c_nblock_used != s_save_nblockPP) {
+					continue;
+				}
+				if (cs_avail_out == 0) {
+					c_state_out_len = 1;
+					break return_notr;
+				}
+				output[cs_next_out] = c_state_out_ch;
+				cs_next_out++;
+				cs_avail_out--;
+				flag = true;
 			}
+			c_state_out_len = 2;
+			c_tpos = c_tt[c_tpos];
+			byte k2 = (byte) (c_tpos & 0xff);
+			c_tpos >>= 8;
+			
+			if (++c_nblock_used != s_save_nblockPP) {
+				if (k2 != c_k0) {
+					c_k0 = k2;
+				} else {
+					c_state_out_len = 3;
+					c_tpos = c_tt[c_tpos];
+					byte k3 = (byte) (c_tpos & 0xff);
+					c_tpos >>= 8;
+					
+					if (++c_nblock_used != s_save_nblockPP) {
+						if (k3 != c_k0) {
+							c_k0 = k3;
+						} else {
+							c_tpos = c_tt[c_tpos];
+							byte byte3 = (byte) (c_tpos & 0xff);
+							c_tpos >>= 8;
+							c_nblock_used++;
+							c_state_out_len = (byte3 & 0xff) + 4;
+							c_tpos = c_tt[c_tpos];
+							c_k0 = (byte) (c_tpos & 0xff);
+							c_tpos >>= 8;
+							c_nblock_used++;
+						}
+					}
+				}
+			}
+		} while (true);
+		
+		int i2 = state.total_out_lo32;
+		state.total_out_lo32 += asdasdasd - cs_avail_out;
+		
+		if (state.total_out_lo32 < i2) {
+			state.total_out_hi32++;
 		}
-
-		int bits = ctx.in_buf_bits >> ctx.in_buf_bit_cnt - bits_wanted & (1 << bits_wanted) - 1;
-		ctx.in_buf_bit_cnt -= bits_wanted;
-		return bits;
+		
+		state.state_out_ch = c_state_out_ch;
+		state.state_out_len = c_state_out_len;
+		state.nblock_used = c_nblock_used;
+		state.k0 = c_k0;
+		state.tt = c_tt;
+		state.tpos = c_tpos;
+		state.output = output;
+		state.avail_out = cs_next_out;
+		state.decompressed_size = cs_avail_out;
 	}
 
-	private static void method_336(BZ2Context var0) {
-		var0.field_245 = 0;
-
-		for (int var1 = 0; var1 < 256; ++var1) {
-			if (var0.field_246[var1]) {
-				var0.field_248[var0.field_245] = (byte) var1;
-				++var0.field_245;
-			}
+	private static void decompress(BZState state) {
+		int g_min_len = 0;
+		int g_limit[] = null;
+		int g_base[] = null;
+		int g_perm[] = null;
+		
+		state.blocksize100k = 1;
+		
+		if (state.tt == null) {
+			state.tt = new int[state.blocksize100k * 100000];
 		}
+		
+		boolean going = true;
+		
+		while (going) {
+			byte uc = get_uchar(state);
+			
+			if (uc == 23) {
+				return;
+			}
+			
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			state.block_no++;
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_uchar(state);
+			uc = get_bit(state);
+			state.block_randomised = uc != 0;
+			
+			if (state.block_randomised) {
+				System.out.println("PANIC! RANDOMISED BLOCK!");
+			}
+			
+			state.orig_ptr = 0;
+			
+			uc = get_uchar(state);
+			state.orig_ptr = state.orig_ptr << 8 | uc & 0xff;
+			uc = get_uchar(state);
+			state.orig_ptr = state.orig_ptr << 8 | uc & 0xff;
+			uc = get_uchar(state);
+			state.orig_ptr = state.orig_ptr << 8 | uc & 0xff;
+			
+			for (int i = 0; i < 16; i++) {
+				uc = get_bit(state);
+				state.in_use_16[i] = uc == 1;
+			}
 
+			for (int i = 0; i < 256; i++) {
+				state.in_use[i] = false;
+			}
+
+			for (int i = 0; i < 16; i++) {
+				if (state.in_use_16[i]) {
+					for (int j = 0; j < 16; j++) {
+						uc = get_bit(state);
+						
+						if (uc == 1) {
+							state.in_use[i * 16 + j] = true;
+						}
+					}
+				}
+			}
+
+			make_maps(state);
+			
+			int alpha_size = state.n_in_use + 2;
+			int n_groups = get_bits(3, state);
+			int n_selectors = get_bits(15, state);
+			
+			for (int i = 0; i < n_selectors; i++) {
+				int j = 0;
+				do {
+					uc = get_bit(state);
+					if (uc == 0)
+						break;
+					j++;
+				} while (true);
+				
+				state.selector_mtf[i] = (byte) j;
+			}
+
+			byte pos[] = new byte[6];
+			for (byte v = 0; v < n_groups; v++) {
+				pos[v] = v;
+			}
+
+			for (int i = 0; i < n_selectors; i++) {
+				byte v = state.selector_mtf[i];
+				byte tmp = pos[v];
+				for (; v > 0; v--)
+					pos[v] = pos[v - 1];
+
+				pos[0] = tmp;
+				state.selector[i] = tmp;
+			}
+
+			for (int t = 0; t < n_groups; t++) {
+				int curr = get_bits(5, state);
+
+				for (int i = 0; i < alpha_size; i++) {
+					do {
+						uc = get_bit(state);
+						if (uc == 0)
+							break;
+						uc = get_bit(state);
+						if (uc == 0)
+							curr++;
+						else
+							curr--;
+					} while (true);
+					
+					state.len[t][i] = (byte) curr;
+				}
+			}
+
+			for (int t = 0; t < n_groups; t++) {
+				byte min_len = 32;
+				int max_len = 0;
+				
+				for (int l1 = 0; l1 < alpha_size; l1++) {
+					if (state.len[t][l1] > max_len)
+						max_len = state.len[t][l1];
+					if (state.len[t][l1] < min_len)
+						min_len = state.len[t][l1];
+				}
+
+				create_decode_tables(state.limit[t], state.base[t], state.perm[t], state.len[t], min_len, max_len, alpha_size);
+				state.min_lens[t] = min_len;
+			}
+
+			int eob = state.n_in_use + 1;
+			int group_no = -1;
+			int group_pos = 0;
+		
+			for (int i = 0; i <= 255; i++) {
+				state.unzftab[i] = 0;
+			}
+
+			int kk = BZState.IO_BUF_SIZE - 1;
+			
+			for (int ii = 15; ii >= 0; ii--) {
+				for (int jj = 15; jj >= 0; jj--) {
+					state.mtfa[kk] = (byte) (ii * 16 + jj);
+					kk--;
+				}
+
+				state.mtfbase[ii] = kk + 1;
+			}
+
+			int nblock = 0;
+
+			if (group_pos == 0) {
+				group_no++;
+				group_pos = BZState.GROUP_SIZE;
+				byte g_sel = state.selector[group_no];
+				g_min_len = state.min_lens[g_sel];
+				g_limit = state.limit[g_sel];
+				g_perm = state.perm[g_sel];
+				g_base = state.base[g_sel];
+			}
+			
+			group_pos--;
+			int zn = g_min_len;
+			int zvec;
+			byte zj;
+			
+			for (zvec = get_bits(zn, state); zvec > g_limit[zn]; zvec = zvec << 1 | zj) {
+				zn++;
+				zj = get_bit(state);
+			}
+
+			for (int next_sym = g_perm[zvec - g_base[zn]]; next_sym != eob;) {
+				if (next_sym == 0 || next_sym == 1) { // BZ_RUNA, BZ_RUNB
+					int es = -1;
+					int N = 1;
+					
+					do {
+						if (next_sym == 0) {
+							es += N;
+						} else if (next_sym == 1) {
+							es += 2 * N;
+						}
+						
+						N *= 2;
+
+						if (group_pos == 0) {
+							group_no++;
+							group_pos = BZState.GROUP_SIZE;
+							byte g_sel = state.selector[group_no];
+							g_min_len = state.min_lens[g_sel];
+							g_limit = state.limit[g_sel];
+							g_perm = state.perm[g_sel];
+							g_base = state.base[g_sel];
+						}
+						
+						group_pos--;
+						int zn_2 = g_min_len;
+						int zvec_2;
+						byte zj_2;
+						
+						for (zvec_2 = get_bits(zn_2, state); zvec_2 > g_limit[zn_2]; zvec_2 = zvec_2 << 1 | zj_2) {
+							zn_2++;
+							zj_2 = get_bit(state);
+						}
+
+						next_sym = g_perm[zvec_2 - g_base[zn_2]];
+					} while (next_sym == 0 || next_sym == 1);
+					
+					es++;
+					uc = state.set_to_unseq[state.mtfa[state.mtfbase[0]] & 0xff];
+					state.unzftab[uc & 0xff] += es;
+					
+					for (; es > 0; es--) {
+						state.tt[nblock] = uc & 0xff;
+						nblock++;
+					}
+
+				} else {
+					int nn = next_sym - 1;
+
+					if (nn < 16) { // MTFL_SIZE
+						int pp = state.mtfbase[0];
+						uc = state.mtfa[pp + nn];
+						
+						for (; nn > 3; nn -= 4) {
+							int z = pp + nn;
+							state.mtfa[z] = state.mtfa[z - 1];
+							state.mtfa[z - 1] = state.mtfa[z - 2];
+							state.mtfa[z - 2] = state.mtfa[z - 3];
+							state.mtfa[z - 3] = state.mtfa[z - 4];
+						}
+
+						for (; nn > 0; nn--) {
+							state.mtfa[pp + nn] = state.mtfa[(pp + nn) - 1];
+						}
+	
+						state.mtfa[pp] = uc;
+					} else {
+						int lno = nn / 16;
+						int off = nn % 16;
+						int pp = state.mtfbase[lno] + off;
+						
+						uc = state.mtfa[pp];
+						
+						for (; pp > state.mtfbase[lno]; pp--) {
+							state.mtfa[pp] = state.mtfa[pp - 1];
+						}
+
+						state.mtfbase[lno]++;
+						
+						for (; lno > 0; lno--) {
+							state.mtfbase[lno]--;
+							state.mtfa[state.mtfbase[lno]] = state.mtfa[(state.mtfbase[lno - 1] + 16) - 1];
+						}
+
+						state.mtfbase[0]--;
+						state.mtfa[state.mtfbase[0]] = uc;
+						if (state.mtfbase[0] == 0) {
+							kk = 4095; // MTFA_SIZE - 1
+							for (int ii = 15; ii >= 0; ii--) {
+								for (int jj = 15; jj >= 0; jj--) {
+									state.mtfa[kk] = state.mtfa[state.mtfbase[ii] + jj];
+									kk--;
+								}
+
+								state.mtfbase[ii] = kk + 1;
+							}
+
+						}
+					}
+					state.unzftab[state.set_to_unseq[uc & 0xff] & 0xff]++;
+					state.tt[nblock] = state.set_to_unseq[uc & 0xff] & 0xff;
+					nblock++;
+
+					if (group_pos == 0) {
+						group_no++;
+						group_pos = BZState.GROUP_SIZE;
+						byte g_sel = state.selector[group_no];
+						g_min_len = state.min_lens[g_sel];
+						g_limit = state.limit[g_sel];
+						g_perm = state.perm[g_sel];
+						g_base = state.base[g_sel];
+					}
+					
+					group_pos--;
+	
+					int zn_2 = g_min_len;
+					int zvec_2;
+					byte zj_2;
+					
+					for (zvec_2 = get_bits(zn_2, state); zvec_2 > g_limit[zn_2]; zvec_2 = zvec_2 << 1 | zj_2) {
+						zn_2++;
+						zj_2 = get_bit(state);
+					}
+
+					next_sym = g_perm[zvec_2 - g_base[zn_2]];
+				}
+			}
+
+			state.state_out_len = 0;
+			state.state_out_ch = 0;
+			state.cftab[0] = 0;
+
+			for (int i = 1; i <= 256; i++) {
+				state.cftab[i] = state.unzftab[i - 1];
+			}
+
+			for (int i = 1; i <= 256; i++) {
+				state.cftab[i] += state.cftab[i - 1];
+			}
+
+			for (int i = 0; i < nblock; i++) {
+				uc = (byte) (state.tt[i] & 0xff);
+				state.tt[state.cftab[uc & 0xff]] |= i << 8;
+				state.cftab[uc & 0xff]++;
+			}
+
+			state.tpos = state.tt[state.orig_ptr] >> 8;
+			state.nblock_used = 0;
+			state.tpos = state.tt[state.tpos];
+			state.k0 = (byte) (state.tpos & 0xff);
+			state.tpos >>= 8;
+			state.nblock_used++;
+			state.save_nblock = nblock;
+			next_header(state);
+			going = state.nblock_used == state.save_nblock + 1 && state.state_out_len == 0;
+		}
 	}
 
-	private static void method_337(int[] var0, int[] var1, int[] var2, byte[] var3, int var4, int var5, int var6) {
-		int var7 = 0;
+	private static byte get_uchar(BZState state) {
+		return (byte) get_bits(8, state);
+	}
 
-		int var8;
-		for (var8 = var4; var8 <= var5; ++var8) {
-			for (int var9 = 0; var9 < var6; ++var9) {
-				if (var3[var9] == var8) {
-					var2[var7] = var9;
-					++var7;
+	private static byte get_bit(BZState state) {
+		return (byte) get_bits(1, state);
+	}
+
+	private static int get_bits(int i, BZState state) {
+		int vvv;
+	
+		do {
+			if (state.bs_live >= i) {
+				int v = state.bs_buff >> state.bs_live - i & (1 << i) - 1;
+				state.bs_live -= i;
+				vvv = v;
+				break;
+			}
+			state.bs_buff = state.bs_buff << 8 | state.input[state.next_in] & 0xff;
+			state.bs_live += 8;
+			state.next_in++;
+			state.avail_in--;
+			state.total_in_lo32++;
+			if (state.total_in_lo32 == 0)
+				state.total_in_hi32++;
+		} while (true);
+		return vvv;
+	}
+
+	private static void make_maps(BZState state) {
+		state.n_in_use = 0;
+	
+		for (int i = 0; i < 256; i++) {
+			if (state.in_use[i]) {
+				state.set_to_unseq[state.n_in_use] = (byte) i;
+				state.n_in_use++;
+			}
+		}
+	}
+
+	private static void create_decode_tables(int limit[], int base[], int perm[], byte length[], int min_len,
+			int max_len, int alpha_size) {
+		int pp = 0;
+		
+		for (int i = min_len; i <= max_len; i++) {
+			for (int j = 0; j < alpha_size; j++) {
+				if (length[j] == i) {
+					perm[pp] = j;
+					pp++;
 				}
 			}
 		}
 
-		for (var8 = 0; var8 < 23; ++var8) {
-			var1[var8] = 0;
+		for (int i = 0; i < 23; i++) {
+			base[i] = 0;
 		}
 
-		for (var8 = 0; var8 < var6; ++var8) {
-			++var1[var3[var8] + 1];
+		for (int i = 0; i < alpha_size; i++) {
+			base[length[i] + 1]++;
 		}
 
-		for (var8 = 1; var8 < 23; ++var8) {
-			var1[var8] += var1[var8 - 1];
+		for (int i = 1; i < 23; i++) {
+			base[i] += base[i - 1];
 		}
 
-		for (var8 = 0; var8 < 23; ++var8) {
-			var0[var8] = 0;
+		for (int i = 0; i < 23; i++) {
+			limit[i] = 0;
 		}
 
-		int var10 = 0;
-
-		for (var8 = var4; var8 <= var5; ++var8) {
-			var10 += var1[var8 + 1] - var1[var8];
-			var0[var8] = var10 - 1;
-			var10 <<= 1;
+		int vec = 0;
+		
+		for (int i = min_len; i <= max_len; i++) {
+			vec += base[i + 1] - base[i];
+			limit[i] = vec - 1;
+			vec <<= 1;
 		}
 
-		for (var8 = var4 + 1; var8 <= var5; ++var8) {
-			var1[var8] = (var0[var8 - 1] + 1 << 1) - var1[var8];
+		for (int i = min_len + 1; i <= max_len; i++) {
+			base[i] = (limit[i - 1] + 1 << 1) - base[i];
 		}
 	}
 }

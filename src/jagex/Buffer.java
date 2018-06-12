@@ -21,7 +21,7 @@ public abstract class Buffer {
 	private static final int char_pipe = 124;
 	private static final int char_quote = 34;
 
-	protected int max_frame_size = 5000;
+	protected final int max_frame_size = 5000;
 	protected boolean error = false;
 	protected String error_str = "";
 	protected int flush_tick;

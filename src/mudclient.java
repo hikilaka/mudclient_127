@@ -2515,7 +2515,7 @@ public class mudclient extends MultiplayerGame {
 					var5 = this.kcb[var13];
 					var6 = this.lcb[var13];
 					if (var5 >= 0 && var6 >= 0 && var5 < 96 && var6 < 96 && this.mcb[var13] == 74) {
-						this.jcb[var13].method_256(1, 0, 0);
+						this.jcb[var13].rotate(1, 0, 0);
 					}
 				}
 
@@ -3021,15 +3021,15 @@ public class mudclient extends MultiplayerGame {
 									var13 = (var6 + var6 + var27) * this.field_200 / 2;
 									var14 = (var7 + var7 + var12) * this.field_200 / 2;
 									var15 = Config.obj_model[var21];
-									Model var16 = this.models[var15].method_274();
+									Model var16 = this.models[var15].copy();
 									this.scene.add(var16);
 									var16.field_291 = this.icb;
-									var16.method_256(0, var10 * 32, 0);
-									var16.method_258(var13, -this.terrian.calc_z(var13, var14), var14);
+									var16.rotate(0, var10 * 32, 0);
+									var16.translate(var13, -this.terrian.calc_z(var13, var14), var14);
 									var16.set_light(true, 48, 48, -50, -10, -50);
 									this.terrian.obj_plot(var6, var7, var21);
 									if (var21 == 74) {
-										var16.method_258(0, -480, 0);
+										var16.translate(0, -480, 0);
 									}
 
 									this.kcb[this.icb] = var6;
@@ -4231,10 +4231,10 @@ public class mudclient extends MultiplayerGame {
 							this.scene.remove(this.jcb[var2]);
 							var8 = "torcha" + (this.dab + 1);
 							var9 = Config.model_lookup(var8);
-							var10 = this.models[var9].method_274();
+							var10 = this.models[var9].copy();
 							this.scene.add(var10);
 							var10.set_light(true, 48, 48, -50, -10, -50);
-							var10.method_276(this.jcb[var2]);
+							var10.copy_trans(this.jcb[var2]);
 							var10.field_291 = var2;
 							this.jcb[var2] = var10;
 						}
@@ -4251,10 +4251,10 @@ public class mudclient extends MultiplayerGame {
 							this.scene.remove(this.jcb[var2]);
 							var8 = "skulltorcha" + (this.dab + 1);
 							var9 = Config.model_lookup(var8);
-							var10 = this.models[var9].method_274();
+							var10 = this.models[var9].copy();
 							this.scene.add(var10);
 							var10.set_light(true, 48, 48, -50, -10, -50);
-							var10.method_276(this.jcb[var2]);
+							var10.copy_trans(this.jcb[var2]);
 							var10.field_291 = var2;
 							this.jcb[var2] = var10;
 						}
@@ -4277,10 +4277,10 @@ public class mudclient extends MultiplayerGame {
 							this.scene.remove(this.jcb[var2]);
 							var8 = "firea" + (this.eab + 1);
 							var9 = Config.model_lookup(var8);
-							var10 = this.models[var9].method_274();
+							var10 = this.models[var9].copy();
 							this.scene.add(var10);
 							var10.set_light(true, 48, 48, -50, -10, -50);
-							var10.method_276(this.jcb[var2]);
+							var10.copy_trans(this.jcb[var2]);
 							var10.field_291 = var2;
 							this.jcb[var2] = var10;
 						}
@@ -4297,10 +4297,10 @@ public class mudclient extends MultiplayerGame {
 							this.scene.remove(this.jcb[var2]);
 							var8 = "fireplacea" + (this.eab + 1);
 							var9 = Config.model_lookup(var8);
-							var10 = this.models[var9].method_274();
+							var10 = this.models[var9].copy();
 							this.scene.add(var10);
 							var10.set_light(true, 48, 48, -50, -10, -50);
-							var10.method_276(this.jcb[var2]);
+							var10.copy_trans(this.jcb[var2]);
 							var10.field_291 = var2;
 							this.jcb[var2] = var10;
 						}
@@ -5126,10 +5126,10 @@ public class mudclient extends MultiplayerGame {
 						int var18 = (var11 + var11 + var16) * this.field_200 / 2;
 						if (var10 >= 0 && var11 >= 0 && var10 < 96 && var11 < 96) {
 							this.scene.add(var13);
-							var13.method_259(var17, -this.terrian.calc_z(var17, var18), var18);
+							var13.position(var17, -this.terrian.calc_z(var17, var18), var18);
 							this.terrian.obj_plot(var10, var11, var12);
 							if (var12 == 74) {
-								var13.method_258(0, -480, 0);
+								var13.translate(0, -480, 0);
 							}
 						}
 					} catch (RuntimeException var20) {
@@ -5222,10 +5222,10 @@ public class mudclient extends MultiplayerGame {
 		int var7 = var2 * this.field_200;
 		var8 *= this.field_200;
 		var9 *= this.field_200;
-		int var14 = var13.get_vert(var6, -this.terrian.calc_z(var6, var7), var7);
-		int var15 = var13.get_vert(var6, -this.terrian.calc_z(var6, var7) - var12, var7);
-		int var16 = var13.get_vert(var8, -this.terrian.calc_z(var8, var9) - var12, var9);
-		int var17 = var13.get_vert(var8, -this.terrian.calc_z(var8, var9), var9);
+		int var14 = var13.vert_get(var6, -this.terrian.calc_z(var6, var7), var7);
+		int var15 = var13.vert_get(var6, -this.terrian.calc_z(var6, var7) - var12, var7);
+		int var16 = var13.vert_get(var8, -this.terrian.calc_z(var8, var9) - var12, var9);
+		int var17 = var13.vert_get(var8, -this.terrian.calc_z(var8, var9), var9);
 		int[] var18 = new int[] { var14, var15, var16, var17 };
 		var13.face_add(4, var18, var10, var11);
 		var13.set_light(false, 60, 24, -50, -10, -50);
