@@ -1,8 +1,8 @@
 package jagex.client;
 
 public final class Scanline {
-	int field_672;
-	int field_673;
-	int field_674;
-	int field_675;
+	int start_x;
+	int end_x;
+	int start_s;
+	int end_s;
 }

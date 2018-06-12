@@ -5,11 +5,11 @@ public final class Scene {
 	public static final int[] sin512_tbl = new int[512];
 
 	private static final int use_gourad_shading = 12345678;
-	
+
 	int ramp_cnt;
 	int[] grad_base;
 	int[][] grad_ramps;
-	int[] field_585;
+	int[] ramp;
 	public int last_poly_cnt;
 	public int clip_near;
 	public int clip_far_3d;
@@ -328,7 +328,7 @@ public final class Scene {
 
 			for (int j = end; j >= start + 1; --j) {
 				Polygon other = frags[j];
-				
+
 				if (frag.min_plane_x < other.max_plane_x && other.min_plane_x < frag.max_plane_x
 						&& frag.min_plane_y < other.max_plane_y && other.min_plane_y < frag.max_plane_y
 						&& frag.key != other.successor && !separate(frag, other) && heuristic(other, frag)) {
@@ -349,10 +349,10 @@ public final class Scene {
 	public boolean order(Polygon[] polys, int start, int end) {
 		while (true) {
 			Polygon poly_a = polys[start];
-			
+
 			for (int i = start + 1; i <= end; ++i) {
 				Polygon poly_b = polys[i];
-				
+
 				if (!separate(poly_b, poly_a)) {
 					break;
 				}
@@ -360,7 +360,7 @@ public final class Scene {
 				polys[start] = poly_b;
 				polys[i] = poly_a;
 				start = i;
-				
+
 				if (i == end) {
 					new_start = i;
 					new_end = i - 1;
@@ -372,7 +372,7 @@ public final class Scene {
 
 			for (int i = end - 1; i >= start; --i) {
 				Polygon poly_d = polys[i];
-				
+
 				if (!separate(poly_c, poly_d)) {
 					break;
 				}
@@ -380,7 +380,7 @@ public final class Scene {
 				polys[end] = poly_d;
 				polys[i] = poly_c;
 				end = i;
-				
+
 				if (start == i) {
 					new_start = i + 1;
 					new_end = i;
@@ -407,7 +407,7 @@ public final class Scene {
 		int yaw = -cam_yaw + 1024 & 1023;
 		int pitch = -cam_pitch + 1024 & 1023;
 		int roll = -cam_roll + 1024 & 1023;
-	
+
 		if (roll != 0) {
 			int sin = sin2048_tbl[roll];
 			int cos = sin2048_tbl[roll + 1024];
@@ -459,10 +459,10 @@ public final class Scene {
 
 	public void render() {
 		reduce_lag = surface.reduce_lag;
-		
+
 		int x = clip_x * clip_far_3d >> view_dist;
 		int y = clip_y * clip_far_3d >> view_dist;
-	
+
 		frustum_max_x = 0;
 		frustum_min_x = 0;
 		frustum_max_y = 0;
@@ -478,14 +478,14 @@ public final class Scene {
 		set_frustum(-clip_x, clip_y, 0);
 		set_frustum(clip_x, -clip_y, 0);
 		set_frustum(clip_x, clip_y, 0);
-		
+
 		frustum_max_x += cam_x;
 		frustum_min_x += cam_x;
 		frustum_max_y += cam_y;
 		frustum_min_y += cam_y;
 		frustum_far_z += cam_z;
 		frustum_near_z += cam_z;
-		
+
 		models[model_cnt] = view;
 		view.trans_state = 2;
 
@@ -494,9 +494,9 @@ public final class Scene {
 		}
 
 		models[model_cnt].project(cam_x, cam_y, cam_z, cam_yaw, cam_pitch, cam_roll, view_dist, clip_near);
-		
+
 		poly_cnt = 0;
-		
+
 		for (int i = 0; i < model_cnt; ++i) {
 			Model model = models[i];
 			if (model.visible) {
@@ -507,7 +507,7 @@ public final class Scene {
 
 					for (int k = 0; k < vert_cnt; ++k) {
 						int vert_z = model.project_vert_z[verts[k]];
-						
+
 						if (vert_z > clip_near && vert_z < clip_far_3d) {
 							flag = true;
 							break;
@@ -519,7 +519,7 @@ public final class Scene {
 
 						for (int k = 0; k < vert_cnt; ++k) {
 							int plane_x = model.project_plane_x[verts[k]];
-							
+
 							if (plane_x > -clip_x) {
 								mask |= 1;
 							}
@@ -555,7 +555,7 @@ public final class Scene {
 								Polygon poly = polys[poly_cnt];
 								poly.model = model;
 								poly.face = j;
-								
+
 								init_poly_3d(poly_cnt);
 								int text;
 								if (poly.visibility < 0) {
@@ -590,12 +590,13 @@ public final class Scene {
 				int plane_x = v.project_plane_x[vert];
 				int plane_y = v.project_plane_y[vert];
 				int plane_z = v.project_vert_z[vert];
-				
+
 				if (plane_z > clip_near && plane_z < clip_far_2d) {
 					int w = (sprite_w[i] << view_dist) / plane_z;
 					int h = (sprite_h[i] << view_dist) / plane_z;
-					
-					if (plane_x - w / 2 <= clip_x && plane_x + w / 2 >= -clip_x && plane_y - h <= clip_y && plane_y >= -clip_y) {
+
+					if (plane_x - w / 2 <= clip_x && plane_x + w / 2 >= -clip_x && plane_y - h <= clip_y
+							&& plane_y >= -clip_y) {
 						Polygon poly = polys[poly_cnt];
 						poly.model = v;
 						poly.face = i;
@@ -609,7 +610,7 @@ public final class Scene {
 
 		if (poly_cnt != 0) {
 			last_poly_cnt = poly_cnt;
-			
+
 			qsort(polys, 0, poly_cnt - 1);
 			intersect_sort(100, polys, poly_cnt);
 
@@ -624,22 +625,23 @@ public final class Scene {
 					int a_x = model.project_plane_x[vert_a];
 					int a_y = model.project_plane_y[vert_a];
 					int a_z = model.project_vert_z[vert_a];
-					
+
 					int w = (sprite_w[face] << view_dist) / a_z;
 					int h = (sprite_h[face] << view_dist) / a_z;
 					int dy = a_y - model.project_plane_y[verts[1]];
 					int dx = (model.project_plane_x[verts[1]] - a_x) * dy / h;
 					dx = model.project_plane_x[verts[1]] - a_x;
-					
+
 					int c_x = a_x - w / 2;
 					int c_y = base_y + a_y - h;
-					
+
 					surface.sprite_3d_plot(c_x + base_x, c_y, w, h, sprite_id[face], dx, (256 << view_dist) / a_z);
-					
+
 					if (picking_active && picked_cnt < max_picked) {
 						c_x += (sprite_trans_x[face] << view_dist) / a_z;
-						
-						if (click_y >= c_y && click_y <= c_y + h && click_x >= c_x && click_x <= c_x + w && !model.unpickable && model.is_local_player[face] == 0) {
+
+						if (click_y >= c_y && click_y <= c_y + h && click_x >= c_x && click_x <= c_x + w
+								&& !model.unpickable && model.is_local_player[face] == 0) {
 							picked_models[picked_cnt] = model;
 							picked_faces[picked_cnt] = face;
 							picked_cnt += 1;
@@ -650,7 +652,7 @@ public final class Scene {
 					int shade = 0;
 					int vert_vnt = model.face_vert_cnt[face];
 					int[] verts = model.face_verts[face];
-					
+
 					if (model.light_type[face] != use_gourad_shading) {
 						if (poly.visibility < 0) {
 							shade = model.light_ambient - model.light_type[face];
@@ -661,11 +663,11 @@ public final class Scene {
 
 					for (int j = 0; j < vert_vnt; ++j) {
 						int vert = verts[j];
-						
+
 						vert_x[j] = model.project_vert_x[vert];
 						vert_y[j] = model.project_vert_y[vert];
 						vert_z[j] = model.project_vert_z[vert];
-						
+
 						if (model.light_type[face] == use_gourad_shading) {
 							if (poly.visibility < 0) {
 								shade = model.light_ambient - model.vert_shade[vert] + model.vert_ambient[vert];
@@ -678,7 +680,7 @@ public final class Scene {
 							plane_x[cnt] = model.project_plane_x[vert];
 							plane_y[cnt] = model.project_plane_y[vert];
 							vert_shade[cnt] = shade;
-							
+
 							if (model.project_vert_z[vert] > fog_distance) {
 								vert_shade[cnt] += (model.project_vert_z[vert] - fog_distance) / fog_falloff;
 							}
@@ -694,9 +696,13 @@ public final class Scene {
 
 							if (model.project_vert_z[text] >= clip_near) {
 								int dz = model.project_vert_z[vert] - model.project_vert_z[text];
-								int dx = model.project_vert_x[vert] - (model.project_vert_x[vert] - model.project_vert_x[text]) * (model.project_vert_z[vert] - this.clip_near) / dz;
-								int dy = model.project_vert_y[vert] - (model.project_vert_y[vert] - model.project_vert_y[text]) * (model.project_vert_z[vert] - this.clip_near) / dz;
-								
+								int dx = model.project_vert_x[vert]
+										- (model.project_vert_x[vert] - model.project_vert_x[text])
+												* (model.project_vert_z[vert] - this.clip_near) / dz;
+								int dy = model.project_vert_y[vert]
+										- (model.project_vert_y[vert] - model.project_vert_y[text])
+												* (model.project_vert_z[vert] - this.clip_near) / dz;
+
 								plane_x[cnt] = (dx << view_dist) / clip_near;
 								plane_y[cnt] = (dy << view_dist) / clip_near;
 								vert_shade[cnt] = shade;
@@ -711,9 +717,13 @@ public final class Scene {
 
 							if (model.project_vert_z[text] >= clip_near) {
 								int dz = model.project_vert_z[vert] - model.project_vert_z[text];
-								int dx = model.project_vert_x[vert] - (model.project_vert_x[vert] - model.project_vert_x[text]) * (model.project_vert_z[vert] - clip_near) / dz;
-								int dy = model.project_vert_y[vert] - (model.project_vert_y[vert] - model.project_vert_y[text]) * (model.project_vert_z[vert] - clip_near) / dz;
-								
+								int dx = model.project_vert_x[vert]
+										- (model.project_vert_x[vert] - model.project_vert_x[text])
+												* (model.project_vert_z[vert] - clip_near) / dz;
+								int dy = model.project_vert_y[vert]
+										- (model.project_vert_y[vert] - model.project_vert_y[text])
+												* (model.project_vert_z[vert] - clip_near) / dz;
+
 								plane_x[cnt] = (dx << view_dist) / clip_near;
 								plane_y[cnt] = (dy << view_dist) / clip_near;
 								vert_shade[cnt] = shade;
@@ -750,7 +760,8 @@ public final class Scene {
 		}
 	}
 
-	private void gen_scanlines(int start_x, int x, int a_ptr, int start_s, int vert_cnt, int[] vert_x, int[] vert_y, int[] vert_shade, Model model, int face) {
+	private void gen_scanlines(int start_x, int x, int a_ptr, int start_s, int vert_cnt, int[] vert_x, int[] vert_y,
+			int[] vert_shade, Model model, int face) {
 		int var11;
 		int var12;
 		int var13;
@@ -952,10 +963,10 @@ public final class Scene {
 				}
 
 				Scanline var40 = this.scanlines[a_ptr];
-				var40.field_672 = start_x;
-				var40.field_673 = x;
-				var40.field_674 = start_s;
-				var40.field_675 = var39;
+				var40.start_x = start_x;
+				var40.end_x = x;
+				var40.start_s = start_s;
+				var40.end_s = var39;
 			}
 
 			if (this.min_y < this.base_y - this.clip_y) {
@@ -1190,10 +1201,10 @@ public final class Scene {
 				}
 
 				Scanline var49 = this.scanlines[a_ptr];
-				var49.field_672 = start_x;
-				var49.field_673 = x;
-				var49.field_674 = start_s;
-				var49.field_675 = var48;
+				var49.start_x = start_x;
+				var49.end_x = x;
+				var49.start_s = start_s;
+				var49.end_s = var48;
 			}
 
 			if (this.min_y < this.base_y - this.clip_y) {
@@ -1224,8 +1235,8 @@ public final class Scene {
 
 			for (a_ptr = this.min_y; a_ptr < this.max_y; ++a_ptr) {
 				var50 = this.scanlines[a_ptr];
-				var50.field_672 = 655360;
-				var50.field_673 = -655360;
+				var50.start_x = 655360;
+				var50.end_x = -655360;
 			}
 
 			var11 = vert_cnt - 1;
@@ -1249,8 +1260,8 @@ public final class Scene {
 
 				for (a_ptr = var12; a_ptr <= var13; ++a_ptr) {
 					var51 = this.scanlines[a_ptr];
-					var51.field_672 = var51.field_673 = var14;
-					var51.field_674 = var51.field_675 = var16;
+					var51.start_x = var51.end_x = var14;
+					var51.start_s = var51.end_s = var16;
 					var14 += var15;
 					var16 += var17;
 				}
@@ -1271,8 +1282,8 @@ public final class Scene {
 
 				for (a_ptr = var13; a_ptr <= var12; ++a_ptr) {
 					var51 = this.scanlines[a_ptr];
-					var51.field_672 = var51.field_673 = var14;
-					var51.field_674 = var51.field_675 = var16;
+					var51.start_x = var51.end_x = var14;
+					var51.start_s = var51.end_s = var16;
 					var14 += var15;
 					var16 += var17;
 				}
@@ -1300,14 +1311,14 @@ public final class Scene {
 
 					for (var19 = var12; var19 <= var13; ++var19) {
 						var52 = this.scanlines[var19];
-						if (var15 < var52.field_672) {
-							var52.field_672 = var15;
-							var52.field_674 = var17;
+						if (var15 < var52.start_x) {
+							var52.start_x = var15;
+							var52.start_s = var17;
 						}
 
-						if (var15 > var52.field_673) {
-							var52.field_673 = var15;
-							var52.field_675 = var17;
+						if (var15 > var52.end_x) {
+							var52.end_x = var15;
+							var52.end_s = var17;
 						}
 
 						var15 += var16;
@@ -1330,14 +1341,14 @@ public final class Scene {
 
 					for (var19 = var13; var19 <= var12; ++var19) {
 						var52 = this.scanlines[var19];
-						if (var15 < var52.field_672) {
-							var52.field_672 = var15;
-							var52.field_674 = var17;
+						if (var15 < var52.start_x) {
+							var52.start_x = var15;
+							var52.start_s = var17;
 						}
 
-						if (var15 > var52.field_673) {
-							var52.field_673 = var15;
-							var52.field_675 = var17;
+						if (var15 > var52.end_x) {
+							var52.end_x = var15;
+							var52.end_s = var17;
 						}
 
 						var15 += var16;
@@ -1354,8 +1365,8 @@ public final class Scene {
 		if (this.picking_active && this.picked_cnt < this.max_picked && this.click_y >= this.min_y
 				&& this.click_y < this.max_y) {
 			var50 = this.scanlines[this.click_y];
-			if (this.click_x >= var50.field_672 >> 8 && this.click_x <= var50.field_673 >> 8
-					&& var50.field_672 <= var50.field_673 && !model.unpickable && model.is_local_player[face] == 0) {
+			if (this.click_x >= var50.start_x >> 8 && this.click_x <= var50.end_x >> 8 && var50.start_x <= var50.end_x
+					&& !model.unpickable && model.is_local_player[face] == 0) {
 				this.picked_models[this.picked_cnt] = model;
 				this.picked_faces[this.picked_cnt] = face;
 				++this.picked_cnt;
@@ -1364,1392 +1375,1361 @@ public final class Scene {
 
 	}
 
-	// jagex.client.q) void
-	private void rasterize(int var1, int var2, int var3, int[] var4, int[] var5, int[] var6, int var7, Model var8) {
-		int var9;
-		int var10;
-		int var11;
-		int var12;
-		int var13;
-		int var14;
-		int var15;
-		int var16;
-		int var17;
-		int var18;
-		if (var7 >= 0) {
-			if (var7 >= this.texture_cnt) {
-				var7 = 0;
+	private void rasterize(int i, int start_x, int vert_vnt, int[] vert_x, int[] vert_y, int[] vert_z, int texture, Model model) {
+		if (texture >= 0) {
+			if (texture >= texture_cnt) {
+				texture = 0;
 			}
 
-			this.texture_prepare(var7);
-			var9 = var4[0];
-			var10 = var5[0];
-			var11 = var6[0];
-			var12 = var9 - var4[1];
-			var13 = var10 - var5[1];
-			var14 = var11 - var6[1];
-			--var3;
-			var15 = var4[var3] - var9;
-			var16 = var5[var3] - var10;
-			var17 = var6[var3] - var11;
-			int var19;
-			int var20;
-			int var21;
-			int var22;
-			int var23;
-			int var24;
-			int var25;
-			int var26;
-			int var27;
-			int var28;
-			int var29;
-			int var30;
-			int var31;
-			int var32;
-			byte var33;
-			Scanline var34;
-			int var35;
-			int var36;
-			int var37;
-			int var38;
-			if (this.texture_dim[var7] == 1) {
-				var18 = var15 * var10 - var16 * var9 << 12;
-				var19 = var16 * var11 - var17 * var10 << 5 - this.view_dist + 7 + 4;
-				var20 = var17 * var9 - var15 * var11 << 5 - this.view_dist + 7;
-				var21 = var12 * var10 - var13 * var9 << 12;
-				var22 = var13 * var11 - var14 * var10 << 5 - this.view_dist + 7 + 4;
-				var23 = var14 * var9 - var12 * var11 << 5 - this.view_dist + 7;
-				var24 = var13 * var15 - var12 * var16 << 5;
-				var25 = var14 * var16 - var13 * var17 << 5 - this.view_dist + 4;
-				var26 = var12 * var17 - var14 * var15 >> this.view_dist - 5;
-				var27 = var19 >> 4;
-				var28 = var22 >> 4;
-				var29 = var25 >> 4;
-				var30 = this.min_y - this.base_y;
-				var31 = this.width;
-				var32 = this.base_x + this.min_y * var31;
-				var33 = 1;
-				var18 += var20 * var30;
-				var21 += var23 * var30;
-				var24 += var26 * var30;
-				if (this.reduce_lag) {
-					if ((this.min_y & 1) == 1) {
-						++this.min_y;
-						var18 += var20;
-						var21 += var23;
-						var24 += var26;
-						var32 += var31;
+			texture_prepare(texture);
+
+			int a_x = vert_x[0];
+			int a_y = vert_y[0];
+			int a_z = vert_z[0];
+			int b_x = a_x - vert_x[1];
+			int b_y = a_y - vert_y[1];
+			int b_z = a_z - vert_z[1];
+			vert_vnt -= 1;
+			int c_x = vert_x[vert_vnt] - a_x;
+			int c_y = vert_y[vert_vnt] - a_y;
+			int c_z = vert_z[vert_vnt] - a_z;
+			
+			if (texture_dim[texture] == 1) {
+				int a = c_x * a_y - c_y * a_x << 12;
+				int h_a = c_y * a_z - c_z * a_y << 5 - view_dist + 7 + 4;
+				int v_a = c_z * a_x - c_x * a_z << 5 - view_dist + 7;
+				int b = b_x * a_y - b_y * a_x << 12;
+				int h_b = b_y * a_z - b_z * a_y << 5 - view_dist + 7 + 4;
+				int v_b = b_z * a_x - b_x * a_z << 5 - view_dist + 7;
+				int c = b_y * c_x - b_x * c_y << 5;
+				int h_c = b_z * c_y - b_y * c_z << 5 - view_dist + 4;
+				int v_c = b_x * c_z - b_z * c_x >> view_dist - 5;
+				int _h_a = h_a >> 4;
+				int _h_b = h_b >> 4;
+				int _h_c = h_c >> 4;
+				int off_y = min_y - base_y;
+				int w = width;
+				int out_ptr = base_x + min_y * w;
+				int step = 1;
+				a += v_a * off_y;
+				b += v_b * off_y;
+				c += v_c * off_y;
+				
+				if (reduce_lag) {
+					if ((min_y & 1) == 1) {
+						min_y += 1;
+						a += v_a;
+						b += v_b;
+						c += v_c;
+						out_ptr += w;
 					}
 
-					var20 <<= 1;
-					var23 <<= 1;
-					var26 <<= 1;
-					var31 <<= 1;
-					var33 = 2;
+					v_a <<= 1;
+					v_b <<= 1;
+					v_c <<= 1;
+					w <<= 1;
+					step = 2;
 				}
 
-				if (var8.trans_texture) {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+				if (model.trans_texture) {
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int ds = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * ds;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_384(this.raster, this.texture_pixels[var7], 0, 0, var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38 << 2);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							trans_tex1_scanline(raster, texture_pixels[texture], 0, 0,
+									a + _h_a * start_x, b + _h_b * start_x, c + _h_c * start_x, h_a,
+									h_b, h_c, dx, out_ptr + start_x, start_s, ds << 2);
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						}
 					}
 
-				} else if (!this.texture_trans_back[var7]) {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+				} else if (!texture_trans_back[texture]) {
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int ds = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * ds;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_383(this.raster, this.texture_pixels[var7], 0, 0, var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38 << 2);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							tex1_scanline(raster, texture_pixels[texture], 0, 0, a + _h_a * start_x,
+									b + _h_b * start_x, c + _h_c * start_x, h_a, h_b, h_c, dx,
+									out_ptr + start_x, start_s, ds << 2);
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						}
 					}
 
 				} else {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int end_s = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * end_s;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_385(this.raster, 0, 0, 0, this.texture_pixels[var7], var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							trans_back_tex1_scanline(raster, 0, 0, 0, texture_pixels[texture],
+									a + _h_a * start_x, b + _h_b * start_x, c + _h_c * start_x, h_a,
+									h_b, h_c, dx, out_ptr + start_x, start_s, end_s);
+							a += v_a;
+							b += v_b;
+							c += v_c;
+							out_ptr += w;
 						}
 					}
 
 				}
 			} else {
-				var18 = var15 * var10 - var16 * var9 << 11;
-				var19 = var16 * var11 - var17 * var10 << 5 - this.view_dist + 6 + 4;
-				var20 = var17 * var9 - var15 * var11 << 5 - this.view_dist + 6;
-				var21 = var12 * var10 - var13 * var9 << 11;
-				var22 = var13 * var11 - var14 * var10 << 5 - this.view_dist + 6 + 4;
-				var23 = var14 * var9 - var12 * var11 << 5 - this.view_dist + 6;
-				var24 = var13 * var15 - var12 * var16 << 5;
-				var25 = var14 * var16 - var13 * var17 << 5 - this.view_dist + 4;
-				var26 = var12 * var17 - var14 * var15 >> this.view_dist - 5;
-				var27 = var19 >> 4;
-				var28 = var22 >> 4;
-				var29 = var25 >> 4;
-				var30 = this.min_y - this.base_y;
-				var31 = this.width;
-				var32 = this.base_x + this.min_y * var31;
-				var33 = 1;
-				var18 += var20 * var30;
-				var21 += var23 * var30;
-				var24 += var26 * var30;
-				if (this.reduce_lag) {
-					if ((this.min_y & 1) == 1) {
-						++this.min_y;
-						var18 += var20;
-						var21 += var23;
-						var24 += var26;
-						var32 += var31;
+				int o_a = c_x * a_y - c_y * a_x << 11;
+				int h_a = c_y * a_z - c_z * a_y << 5 - view_dist + 6 + 4;
+				int v_a = c_z * a_x - c_x * a_z << 5 - view_dist + 6;
+				int o_b = b_x * a_y - b_y * a_x << 11;
+				int h_b = b_y * a_z - b_z * a_y << 5 - view_dist + 6 + 4;
+				int v_b = b_z * a_x - b_x * a_z << 5 - view_dist + 6;
+				int o_c = b_y * c_x - b_x * c_y << 5;
+				int h_c = b_z * c_y - b_y * c_z << 5 - view_dist + 4;
+				int v_c = b_x * c_z - b_z * c_x >> view_dist - 5;
+				int _h_a = h_a >> 4;
+				int _h_b = h_b >> 4;
+				int _h_c = h_c >> 4;
+				int off_y = min_y - base_y;
+				int w = width;
+				int out_ptr = base_x + min_y * w;
+				int step = 1;
+				o_a += v_a * off_y;
+				o_b += v_b * off_y;
+				o_c += v_c * off_y;
+				if (reduce_lag) {
+					if ((min_y & 1) == 1) {
+						min_y += 1;
+						o_a += v_a;
+						o_b += v_b;
+						o_c += v_c;
+						out_ptr += w;
 					}
 
-					var20 <<= 1;
-					var23 <<= 1;
-					var26 <<= 1;
-					var31 <<= 1;
-					var33 = 2;
+					v_a <<= 1;
+					v_b <<= 1;
+					v_c <<= 1;
+					w <<= 1;
+					step = 2;
 				}
 
-				if (var8.trans_texture) {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+				if (model.trans_texture) {
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int ds = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * ds;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_387(this.raster, this.texture_pixels[var7], 0, 0, var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							trans_tex0_scanline(raster, texture_pixels[texture], 0, 0,
+									o_a + _h_a * start_x, o_b + _h_b * start_x, o_c + _h_c * start_x, h_a,
+									h_b, h_c, dx, out_ptr + start_x, start_s, ds);
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						}
 					}
 
-				} else if (!this.texture_trans_back[var7]) {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+				} else if (!texture_trans_back[texture]) {
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int ds = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * ds;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_386(this.raster, this.texture_pixels[var7], 0, 0, var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							tex0_scanline(raster, texture_pixels[texture], 0, 0, o_a + _h_a * start_x,
+									o_b + _h_b * start_x, o_c + _h_c * start_x, h_a, h_b, h_c, dx,
+									out_ptr + start_x, start_s, ds);
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						}
 					}
 
 				} else {
-					for (var1 = this.min_y; var1 < this.max_y; var1 += var33) {
-						var34 = this.scanlines[var1];
-						var2 = var34.field_672 >> 8;
-						var35 = var34.field_673 >> 8;
-						var36 = var35 - var2;
-						if (var36 <= 0) {
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+					for (i = min_y; i < max_y; i += step) {
+						Scanline s = scanlines[i];
+						start_x = s.start_x >> 8;
+						int end_x = s.end_x >> 8;
+						int dx = end_x - start_x;
+						if (dx <= 0) {
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						} else {
-							var37 = var34.field_674;
-							var38 = (var34.field_675 - var37) / var36;
-							if (var2 < -this.clip_x) {
-								var37 += (-this.clip_x - var2) * var38;
-								var2 = -this.clip_x;
-								var36 = var35 - var2;
+							int start_s = s.start_s;
+							int ds = (s.end_s - start_s) / dx;
+							if (start_x < -clip_x) {
+								start_s += (-clip_x - start_x) * ds;
+								start_x = -clip_x;
+								dx = end_x - start_x;
 							}
 
-							if (var35 > this.clip_x) {
-								var35 = this.clip_x;
-								var36 = var35 - var2;
+							if (end_x > clip_x) {
+								end_x = clip_x;
+								dx = end_x - start_x;
 							}
 
-							method_388(this.raster, 0, 0, 0, this.texture_pixels[var7], var18 + var27 * var2,
-									var21 + var28 * var2, var24 + var29 * var2, var19, var22, var25, var36,
-									var32 + var2, var37, var38);
-							var18 += var20;
-							var21 += var23;
-							var24 += var26;
-							var32 += var31;
+							trans_back_tex0_scanline(raster, 0, 0, 0, texture_pixels[texture],
+									o_a + _h_a * start_x, o_b + _h_b * start_x, o_c + _h_c * start_x, h_a,
+									h_b, h_c, dx, out_ptr + start_x, start_s, ds);
+							o_a += v_a;
+							o_b += v_b;
+							o_c += v_c;
+							out_ptr += w;
 						}
 					}
 
 				}
 			}
 		} else {
-			for (var9 = 0; var9 < this.ramp_cnt; ++var9) {
-				if (this.grad_base[var9] == var7) {
-					this.field_585 = this.grad_ramps[var9];
+			for (int j = 0; j < ramp_cnt; ++j) {
+				if (grad_base[j] == texture) {
+					ramp = grad_ramps[j];
 					break;
 				}
 
-				if (var9 == this.ramp_cnt - 1) {
-					var10 = (int) (Math.random() * (double) this.ramp_cnt);
-					this.grad_base[var10] = var7;
-					var7 = -1 - var7;
-					var11 = (var7 >> 10 & 31) * 8;
-					var12 = (var7 >> 5 & 31) * 8;
-					var13 = (var7 & 31) * 8;
+				if (j == ramp_cnt - 1) {
+					int ptr = (int) (Math.random() * (double) ramp_cnt);
+					grad_base[ptr] = texture;
+					texture = -1 - texture;
+					int r = (texture >> 10 & 31) * 8;
+					int g = (texture >> 5 & 31) * 8;
+					int b = (texture & 31) * 8;
 
-					for (var14 = 0; var14 < 256; ++var14) {
-						var15 = var14 * var14;
-						var16 = var11 * var15 / 65536;
-						var17 = var12 * var15 / 65536;
-						var18 = var13 * var15 / 65536;
-						this.grad_ramps[var10][255 - var14] = (var16 << 16) + (var17 << 8) + var18;
+					for (int s = 0; s < 256; ++s) {
+						int k = s * s;
+						int dr = r * k / 65536;
+						int dg = g * k / 65536;
+						int db = b * k / 65536;
+						grad_ramps[ptr][255 - s] = (dr << 16) + (dg << 8) + db;
 					}
 
-					this.field_585 = this.grad_ramps[var10];
+					ramp = grad_ramps[ptr];
 				}
 			}
 
-			var10 = this.width;
-			var11 = this.base_x + this.min_y * var10;
-			byte var39 = 1;
-			if (this.reduce_lag) {
-				if ((this.min_y & 1) == 1) {
-					++this.min_y;
-					var11 += var10;
+			int w = width;
+			int out_ptr = base_x + min_y * w;
+			byte step = 1;
+			
+			if (reduce_lag) {
+				if ((min_y & 1) == 1) {
+					min_y += 1;
+					out_ptr += w;
 				}
 
-				var10 <<= 1;
-				var39 = 2;
+				w <<= 1;
+				step = 2;
 			}
 
-			Scanline var40;
-			if (var8.trans) {
-				for (var1 = this.min_y; var1 < this.max_y; var1 += var39) {
-					var40 = this.scanlines[var1];
-					var2 = var40.field_672 >> 8;
-					var14 = var40.field_673 >> 8;
-					var15 = var14 - var2;
-					if (var15 <= 0) {
-						var11 += var10;
+			if (model.trans) {
+				for (i = min_y; i < max_y; i += step) {
+					Scanline s = scanlines[i];
+					start_x = s.start_x >> 8;
+					int end_x = s.end_x >> 8;
+					int dx = end_x - start_x;
+	
+					if (dx <= 0) {
+						out_ptr += w;
 					} else {
-						var16 = var40.field_674;
-						var17 = (var40.field_675 - var16) / var15;
-						if (var2 < -this.clip_x) {
-							var16 += (-this.clip_x - var2) * var17;
-							var2 = -this.clip_x;
-							var15 = var14 - var2;
+						int start_s = s.start_s;
+						int ds = (s.end_s - start_s) / dx;
+						if (start_x < -clip_x) {
+							start_s += (-clip_x - start_x) * ds;
+							start_x = -clip_x;
+							dx = end_x - start_x;
 						}
 
-						if (var14 > this.clip_x) {
-							var14 = this.clip_x;
-							var15 = var14 - var2;
+						if (end_x > clip_x) {
+							end_x = clip_x;
+							dx = end_x - start_x;
 						}
 
-						method_390(this.raster, -var15, var11 + var2, 0, this.field_585, var16, var17);
-						var11 += var10;
+						trans_grad1_scanline(raster, -dx, out_ptr + start_x, 0, ramp, start_s, ds);
+						out_ptr += w;
 					}
 				}
-
-			} else if (this.wide_band) {
-				for (var1 = this.min_y; var1 < this.max_y; var1 += var39) {
-					var40 = this.scanlines[var1];
-					var2 = var40.field_672 >> 8;
-					var14 = var40.field_673 >> 8;
-					var15 = var14 - var2;
-					if (var15 <= 0) {
-						var11 += var10;
+			} else if (wide_band) {
+				for (i = min_y; i < max_y; i += step) {
+					Scanline s = scanlines[i];
+					start_x = s.start_x >> 8;
+					int end_x = s.end_x >> 8;
+					int dx = end_x - start_x;
+					if (dx <= 0) {
+						out_ptr += w;
 					} else {
-						var16 = var40.field_674;
-						var17 = (var40.field_675 - var16) / var15;
-						if (var2 < -this.clip_x) {
-							var16 += (-this.clip_x - var2) * var17;
-							var2 = -this.clip_x;
-							var15 = var14 - var2;
+						int start_s = s.start_s;
+						int ds = (s.end_s - start_s) / dx;
+						if (start_x < -clip_x) {
+							start_s += (-clip_x - start_x) * ds;
+							start_x = -clip_x;
+							dx = end_x - start_x;
 						}
 
-						if (var14 > this.clip_x) {
-							var14 = this.clip_x;
-							var15 = var14 - var2;
+						if (end_x > clip_x) {
+							end_x = clip_x;
+							dx = end_x - start_x;
 						}
 
-						method_389(this.raster, -var15, var11 + var2, 0, this.field_585, var16, var17);
-						var11 += var10;
+						grad0_scanline(raster, -dx, out_ptr + start_x, 0, ramp, start_s, ds);
+						out_ptr += w;
 					}
 				}
-
 			} else {
-				for (var1 = this.min_y; var1 < this.max_y; var1 += var39) {
-					var40 = this.scanlines[var1];
-					var2 = var40.field_672 >> 8;
-					var14 = var40.field_673 >> 8;
-					var15 = var14 - var2;
-					if (var15 <= 0) {
-						var11 += var10;
+				for (i = min_y; i < max_y; i += step) {
+					Scanline s = scanlines[i];
+					start_x = s.start_x >> 8;
+					int end_x = s.end_x >> 8;
+					int dx = end_x - start_x;
+					if (dx <= 0) {
+						out_ptr += w;
 					} else {
-						var16 = var40.field_674;
-						var17 = (var40.field_675 - var16) / var15;
-						if (var2 < -this.clip_x) {
-							var16 += (-this.clip_x - var2) * var17;
-							var2 = -this.clip_x;
-							var15 = var14 - var2;
+						int start_s = s.start_s;
+						int ds = (s.end_s - start_s) / dx;
+						if (start_x < -clip_x) {
+							start_s += (-clip_x - start_x) * ds;
+							start_x = -clip_x;
+							dx = end_x - start_x;
 						}
 
-						if (var14 > this.clip_x) {
-							var14 = this.clip_x;
-							var15 = var14 - var2;
+						if (end_x > clip_x) {
+							end_x = clip_x;
+							dx = end_x - start_x;
 						}
 
-						grad1_scanline(this.raster, -var15, var11 + var2, 0, this.field_585, var16, var17);
-						var11 += var10;
+						grad1_scanline(raster, -dx, out_ptr + start_x, 0, ramp, start_s, ds);
+						out_ptr += w;
 					}
 				}
-
 			}
 		}
 	}
 
-	// int, int, int, int) void
-	private static void method_383(int[] var0, int[] var1, int var2, int var3, int var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13) {
-		if (var10 > 0) {
-			int var14 = 0;
-			int var15 = 0;
-			int var18 = 0;
-			if (var6 != 0) {
-				var2 = var4 / var6 << 7;
-				var3 = var5 / var6 << 7;
+	private static void tex1_scanline(int[] out, int[] in, int u, int v, int a, int b, int c, int da, int db, int dc,
+			int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+		int end_u = 0;
+		int end_v = 0;
+		int shadow_pow = 0;
+		if (c != 0) {
+			u = a / c << 7;
+			v = b / c << 7;
+		}
+
+		if (u < 0) {
+			u = 0;
+		} else if (u > 16256) {
+			u = 16256;
+		}
+
+		a += da;
+		b += db;
+		c += dc;
+		if (c != 0) {
+			end_u = a / c << 7;
+			end_v = b / c << 7;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 16256) {
+			end_u = 16256;
+		}
+
+		int du = end_u - u >> 4;
+		int dv = end_v - v >> 4;
+
+		for (int var19 = len >> 4; var19 > 0; --var19) {
+			u += s & 6291456;
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u = end_u;
+			v = end_v;
+			a += da;
+			b += db;
+			c += dc;
+			if (c != 0) {
+				end_u = a / c << 7;
+				end_v = b / c << 7;
 			}
 
-			if (var2 < 0) {
-				var2 = 0;
-			} else if (var2 > 16256) {
-				var2 = 16256;
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 16256) {
+				end_u = 16256;
 			}
 
-			var4 += var7;
-			var5 += var8;
-			var6 += var9;
-			if (var6 != 0) {
-				var14 = var4 / var6 << 7;
-				var15 = var5 / var6 << 7;
+			du = end_u - u >> 4;
+			dv = end_v - v >> 4;
+		}
+
+		for (int var20 = 0; var20 < (len & 15); ++var20) {
+			if ((var20 & 3) == 0) {
+				u = (u & 16383) + (s & 6291456);
+				shadow_pow = s >> 23;
+				s += s_step;
 			}
 
-			if (var14 < 0) {
-				var14 = 0;
-			} else if (var14 > 16256) {
-				var14 = 16256;
+			out[ptr++] = in[(v & 16256) + (u >> 7)] >>> shadow_pow;
+			u += du;
+			v += dv;
+		}
+	}
+
+	private static void trans_tex1_scanline(int[] out, int[] in, int u, int v, int a, int b, int c, int da, int db,
+			int dc, int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+		int end_u = 0;
+		int end_v = 0;
+		int shadow_pow = 0;
+		if (c != 0) {
+			u = a / c << 7;
+			v = b / c << 7;
+		}
+
+		if (u < 0) {
+			u = 0;
+		} else if (u > 16256) {
+			u = 16256;
+		}
+
+		a += da;
+		b += db;
+		c += dc;
+		if (c != 0) {
+			end_u = a / c << 7;
+			end_v = b / c << 7;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 16256) {
+			end_u = 16256;
+		}
+
+		int du = end_u - u >> 4;
+		int dv = end_v - v >> 4;
+
+		for (int i = len >> 4; i > 0; --i) {
+			u += s & 6291456;
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			u = (u & 16383) + (s & 6291456);
+			shadow_pow = s >> 23;
+			s += s_step;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u = end_u;
+			v = end_v;
+			a += da;
+			b += db;
+			c += dc;
+			if (c != 0) {
+				end_u = a / c << 7;
+				end_v = b / c << 7;
 			}
 
-			int var16 = var14 - var2 >> 4;
-			int var17 = var15 - var3 >> 4;
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 16256) {
+				end_u = 16256;
+			}
 
-			for (int var19 = var10 >> 4; var19 > 0; --var19) {
-				var2 += var12 & 6291456;
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 = var14;
-				var3 = var15;
-				var4 += var7;
-				var5 += var8;
-				var6 += var9;
-				if (var6 != 0) {
-					var14 = var4 / var6 << 7;
-					var15 = var5 / var6 << 7;
+			du = end_u - u >> 4;
+			dv = end_v - v >> 4;
+		}
+
+		for (int var20 = 0; var20 < (len & 15); ++var20) {
+			if ((var20 & 3) == 0) {
+				u = (u & 16383) + (s & 6291456);
+				shadow_pow = s >> 23;
+				s += s_step;
+			}
+
+			out[ptr++] = (in[(v & 16256) + (u >> 7)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			u += du;
+			v += dv;
+		}
+	}
+
+	private static void trans_back_tex1_scanline(int[] out, int tex, int u, int v, int[] in, int a, int b, int c,
+			int da, int db, int dc, int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+		int end_u = 0;
+		int end_v = 0;
+		s_step <<= 2;
+		if (c != 0) {
+			end_u = a / c << 7;
+			end_v = b / c << 7;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 16256) {
+			end_u = 16256;
+		}
+
+		for (int var19 = len; var19 > 0; var19 -= 16) {
+			a += da;
+			b += db;
+			c += dc;
+			u = end_u;
+			v = end_v;
+			if (c != 0) {
+				end_u = a / c << 7;
+				end_v = b / c << 7;
+			}
+
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 16256) {
+				end_u = 16256;
+			}
+
+			int du = end_u - u >> 4;
+			int dv = end_v - v >> 4;
+			int shadow_pow = s >> 23;
+			u += s & 6291456;
+			s += s_step;
+			if (var19 < 16) {
+				for (int var21 = 0; var21 < var19; ++var21) {
+					if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+						out[ptr] = tex;
+					}
+
+					++ptr;
+					u += du;
+					v += dv;
+					if ((var21 & 3) == 3) {
+						u = (u & 16383) + (s & 6291456);
+						shadow_pow = s >> 23;
+						s += s_step;
+					}
+				}
+			} else {
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
 				}
 
-				if (var14 < 0) {
-					var14 = 0;
-				} else if (var14 > 16256) {
-					var14 = 16256;
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
 				}
 
-				var16 = var14 - var2 >> 4;
-				var17 = var15 - var3 >> 4;
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				u = (u & 16383) + (s & 6291456);
+				shadow_pow = s >> 23;
+				s += s_step;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				u = (u & 16383) + (s & 6291456);
+				shadow_pow = s >> 23;
+				s += s_step;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				u = (u & 16383) + (s & 6291456);
+				shadow_pow = s >> 23;
+				s += s_step;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+				u += du;
+				v += dv;
+				if ((tex = in[(v & 16256) + (u >> 7)] >>> shadow_pow) != 0) {
+					out[ptr] = tex;
+				}
+
+				++ptr;
+			}
+		}
+	}
+
+	private static void tex0_scanline(int[] out, int[] in, int u, int v, int a, int b, int c, int da, int db, int dc,
+			int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+		int end_u = 0;
+		int end_v = 0;
+		s_step <<= 2;
+
+		if (c != 0) {
+			end_u = a / c << 6;
+			end_v = b / c << 6;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 4032) {
+			end_u = 4032;
+		}
+
+		for (int j = len; j > 0; j -= 16) {
+			a += da;
+			b += db;
+			c += dc;
+			u = end_u;
+			v = end_v;
+			if (c != 0) {
+				end_u = a / c << 6;
+				end_v = b / c << 6;
 			}
 
-			for (int var20 = 0; var20 < (var10 & 15); ++var20) {
-				if ((var20 & 3) == 0) {
-					var2 = (var2 & 16383) + (var12 & 6291456);
-					var18 = var12 >> 23;
-					var12 += var13;
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 4032) {
+				end_u = 4032;
+			}
+
+			int du = end_u - u >> 4;
+			int dv = end_v - v >> 4;
+			int shadow_pow = s >> 20;
+			u += s & 786432;
+			s += s_step;
+
+			if (j < 16) {
+				for (int var20 = 0; var20 < j; ++var20) {
+					out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+					u += du;
+					v += dv;
+					if ((var20 & 3) == 3) {
+						u = (u & 4095) + (s & 786432);
+						shadow_pow = s >> 20;
+						s += s_step;
+					}
+				}
+			} else {
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+				u += du;
+				v += dv;
+				out[ptr++] = in[(v & 4032) + (u >> 6)] >>> shadow_pow;
+			}
+		}
+	}
+
+	private static void trans_tex0_scanline(int[] out, int[] in, int u, int v, int a, int b, int c, int da, int db,
+			int dc, int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+		int end_u = 0;
+		int end_v = 0;
+		s_step <<= 2;
+
+		if (c != 0) {
+			end_u = a / c << 6;
+			end_v = b / c << 6;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 4032) {
+			end_u = 4032;
+		}
+
+		for (int j = len; j > 0; j -= 16) {
+			a += da;
+			b += db;
+			c += dc;
+			u = end_u;
+			v = end_v;
+			if (c != 0) {
+				end_u = a / c << 6;
+				end_v = b / c << 6;
+			}
+
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 4032) {
+				end_u = 4032;
+			}
+
+			int du = end_u - u >> 4;
+			int dv = end_v - v >> 4;
+			int shadow_pow = s >> 20;
+			u += s & 786432;
+			s += s_step;
+			if (j < 16) {
+				for (int var20 = 0; var20 < j; ++var20) {
+					out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+					u += du;
+					v += dv;
+					if ((var20 & 3) == 3) {
+						u = (u & 4095) + (s & 786432);
+						shadow_pow = s >> 20;
+						s += s_step;
+					}
+				}
+			} else {
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				u = (u & 4095) + (s & 786432);
+				shadow_pow = s >> 20;
+				s += s_step;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+				u += du;
+				v += dv;
+				out[ptr++] = (in[(v & 4032) + (u >> 6)] >>> shadow_pow) + (out[ptr] >> 1 & 8355711);
+			}
+		}
+	}
+
+	private static void trans_back_tex0_scanline(int[] out, int u, int i, int v, int[] in, int a, int b, int c, int da,
+			int db, int dc, int len, int ptr, int s, int s_step) {
+		if (len <= 0) {
+			return;
+		}
+
+		int end_u = 0;
+		int end_v = 0;
+		s_step <<= 2;
+
+		if (c != 0) {
+			end_u = a / c << 6;
+			end_v = b / c << 6;
+		}
+
+		if (end_u < 0) {
+			end_u = 0;
+		} else if (end_u > 4032) {
+			end_u = 4032;
+		}
+
+		for (int j = len; j > 0; j -= 16) {
+			a += da;
+			b += db;
+			c += dc;
+			i = end_u;
+			v = end_v;
+			if (c != 0) {
+				end_u = a / c << 6;
+				end_v = b / c << 6;
+			}
+
+			if (end_u < 0) {
+				end_u = 0;
+			} else if (end_u > 4032) {
+				end_u = 4032;
+			}
+
+			int du = end_u - i >> 4;
+			int dv = end_v - v >> 4;
+			int shade_pow = s >> 20;
+			i += s & 786432;
+			s += s_step;
+			if (j < 16) {
+				for (int var21 = 0; var21 < j; ++var21) {
+					if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+						out[ptr] = u;
+					}
+
+					++ptr;
+					i += du;
+					v += dv;
+					if ((var21 & 3) == 3) {
+						i = (i & 4095) + (s & 786432);
+						shade_pow = s >> 20;
+						s += s_step;
+					}
+				}
+			} else {
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
 				}
 
-				var0[var11++] = var1[(var3 & 16256) + (var2 >> 7)] >>> var18;
-				var2 += var16;
-				var3 += var17;
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				i = (i & 4095) + (s & 786432);
+				shade_pow = s >> 20;
+				s += s_step;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				i = (i & 4095) + (s & 786432);
+				shade_pow = s >> 20;
+				s += s_step;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				i = (i & 4095) + (s & 786432);
+				shade_pow = s >> 20;
+				s += s_step;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+				i += du;
+				v += dv;
+				if ((u = in[(v & 4032) + (i >> 6)] >>> shade_pow) != 0) {
+					out[ptr] = u;
+				}
+
+				++ptr;
+			}
+		}
+	}
+
+	private static void grad0_scanline(int[] out, int len, int ptr, int col, int[] ramp, int r, int r_step) {
+		if (len < 0) {
+			r_step <<= 1;
+			col = ramp[r >> 8 & 255];
+			r += r_step;
+			int init = len / 8;
+
+			for (int i = init; i < 0; ++i) {
+				out[ptr++] = col;
+				out[ptr++] = col;
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col;
+				out[ptr++] = col;
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col;
+				out[ptr++] = col;
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col;
+				out[ptr++] = col;
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+			}
+
+			init = -(len % 8);
+
+			for (int i = 0; i < init; ++i) {
+				out[ptr++] = col;
+				if ((i & 1) == 1) {
+					col = ramp[r >> 8 & 255];
+					r += r_step;
+				}
 			}
 
 		}
 	}
 
-	// int, int, int, int) void
-	private static void method_384(int[] var0, int[] var1, int var2, int var3, int var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13) {
-		if (var10 > 0) {
-			int var14 = 0;
-			int var15 = 0;
-			int var18 = 0;
-			if (var6 != 0) {
-				var2 = var4 / var6 << 7;
-				var3 = var5 / var6 << 7;
+	private static void trans_grad1_scanline(int[] out, int len, int ptr, int col, int[] ramp, int r, int r_step) {
+		if (len < 0) {
+			r_step <<= 2;
+			col = ramp[r >> 8 & 255];
+			r += r_step;
+			int init = len / 16;
+
+			for (int i = init; i < 0; ++i) {
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				col = ramp[r >> 8 & 255];
+				r += r_step;
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				col = ramp[r >> 8 & 255];
+				r += r_step;
 			}
 
-			if (var2 < 0) {
-				var2 = 0;
-			} else if (var2 > 16256) {
-				var2 = 16256;
-			}
-
-			var4 += var7;
-			var5 += var8;
-			var6 += var9;
-			if (var6 != 0) {
-				var14 = var4 / var6 << 7;
-				var15 = var5 / var6 << 7;
-			}
-
-			if (var14 < 0) {
-				var14 = 0;
-			} else if (var14 > 16256) {
-				var14 = 16256;
-			}
-
-			int var16 = var14 - var2 >> 4;
-			int var17 = var15 - var3 >> 4;
-
-			for (int var19 = var10 >> 4; var19 > 0; --var19) {
-				var2 += var12 & 6291456;
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var2 = (var2 & 16383) + (var12 & 6291456);
-				var18 = var12 >> 23;
-				var12 += var13;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 = var14;
-				var3 = var15;
-				var4 += var7;
-				var5 += var8;
-				var6 += var9;
-				if (var6 != 0) {
-					var14 = var4 / var6 << 7;
-					var15 = var5 / var6 << 7;
-				}
-
-				if (var14 < 0) {
-					var14 = 0;
-				} else if (var14 > 16256) {
-					var14 = 16256;
-				}
-
-				var16 = var14 - var2 >> 4;
-				var17 = var15 - var3 >> 4;
-			}
-
-			for (int var20 = 0; var20 < (var10 & 15); ++var20) {
-				if ((var20 & 3) == 0) {
-					var2 = (var2 & 16383) + (var12 & 6291456);
-					var18 = var12 >> 23;
-					var12 += var13;
-				}
-
-				var0[var11++] = (var1[(var3 & 16256) + (var2 >> 7)] >>> var18) + (var0[var11] >> 1 & 8355711);
-				var2 += var16;
-				var3 += var17;
-			}
-
-		}
-	}
-
-	// int, int, int, int, int) void
-	private static void method_385(int[] var0, int var1, int var2, int var3, int[] var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13, int var14) {
-		if (var11 > 0) {
-			int var15 = 0;
-			int var16 = 0;
-			var14 <<= 2;
-			if (var7 != 0) {
-				var15 = var5 / var7 << 7;
-				var16 = var6 / var7 << 7;
-			}
-
-			if (var15 < 0) {
-				var15 = 0;
-			} else if (var15 > 16256) {
-				var15 = 16256;
-			}
-
-			for (int var19 = var11; var19 > 0; var19 -= 16) {
-				var5 += var8;
-				var6 += var9;
-				var7 += var10;
-				var2 = var15;
-				var3 = var16;
-				if (var7 != 0) {
-					var15 = var5 / var7 << 7;
-					var16 = var6 / var7 << 7;
-				}
-
-				if (var15 < 0) {
-					var15 = 0;
-				} else if (var15 > 16256) {
-					var15 = 16256;
-				}
-
-				int var17 = var15 - var2 >> 4;
-				int var18 = var16 - var3 >> 4;
-				int var20 = var13 >> 23;
-				var2 += var13 & 6291456;
-				var13 += var14;
-				if (var19 < 16) {
-					for (int var21 = 0; var21 < var19; ++var21) {
-						if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-							var0[var12] = var1;
-						}
-
-						++var12;
-						var2 += var17;
-						var3 += var18;
-						if ((var21 & 3) == 3) {
-							var2 = (var2 & 16383) + (var13 & 6291456);
-							var20 = var13 >> 23;
-							var13 += var14;
-						}
-					}
-				} else {
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 16383) + (var13 & 6291456);
-					var20 = var13 >> 23;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 16383) + (var13 & 6291456);
-					var20 = var13 >> 23;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 16383) + (var13 & 6291456);
-					var20 = var13 >> 23;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 16256) + (var2 >> 7)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-				}
-			}
-
-		}
-	}
-
-	// int, int, int, int) void
-	private static void method_386(int[] var0, int[] var1, int var2, int var3, int var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13) {
-		if (var10 > 0) {
-			int var14 = 0;
-			int var15 = 0;
-			var13 <<= 2;
-			if (var6 != 0) {
-				var14 = var4 / var6 << 6;
-				var15 = var5 / var6 << 6;
-			}
-
-			if (var14 < 0) {
-				var14 = 0;
-			} else if (var14 > 4032) {
-				var14 = 4032;
-			}
-
-			for (int var18 = var10; var18 > 0; var18 -= 16) {
-				var4 += var7;
-				var5 += var8;
-				var6 += var9;
-				var2 = var14;
-				var3 = var15;
-				if (var6 != 0) {
-					var14 = var4 / var6 << 6;
-					var15 = var5 / var6 << 6;
-				}
-
-				if (var14 < 0) {
-					var14 = 0;
-				} else if (var14 > 4032) {
-					var14 = 4032;
-				}
-
-				int var16 = var14 - var2 >> 4;
-				int var17 = var15 - var3 >> 4;
-				int var19 = var12 >> 20;
-				var2 += var12 & 786432;
-				var12 += var13;
-				if (var18 < 16) {
-					for (int var20 = 0; var20 < var18; ++var20) {
-						var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-						var2 += var16;
-						var3 += var17;
-						if ((var20 & 3) == 3) {
-							var2 = (var2 & 4095) + (var12 & 786432);
-							var19 = var12 >> 20;
-							var12 += var13;
-						}
-					}
-				} else {
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = var1[(var3 & 4032) + (var2 >> 6)] >>> var19;
-				}
-			}
-
-		}
-	}
-
-	// int, int, int, int) void
-	private static void method_387(int[] var0, int[] var1, int var2, int var3, int var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13) {
-		if (var10 > 0) {
-			int var14 = 0;
-			int var15 = 0;
-			var13 <<= 2;
-			if (var6 != 0) {
-				var14 = var4 / var6 << 6;
-				var15 = var5 / var6 << 6;
-			}
-
-			if (var14 < 0) {
-				var14 = 0;
-			} else if (var14 > 4032) {
-				var14 = 4032;
-			}
-
-			for (int var18 = var10; var18 > 0; var18 -= 16) {
-				var4 += var7;
-				var5 += var8;
-				var6 += var9;
-				var2 = var14;
-				var3 = var15;
-				if (var6 != 0) {
-					var14 = var4 / var6 << 6;
-					var15 = var5 / var6 << 6;
-				}
-
-				if (var14 < 0) {
-					var14 = 0;
-				} else if (var14 > 4032) {
-					var14 = 4032;
-				}
-
-				int var16 = var14 - var2 >> 4;
-				int var17 = var15 - var3 >> 4;
-				int var19 = var12 >> 20;
-				var2 += var12 & 786432;
-				var12 += var13;
-				if (var18 < 16) {
-					for (int var20 = 0; var20 < var18; ++var20) {
-						var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-						var2 += var16;
-						var3 += var17;
-						if ((var20 & 3) == 3) {
-							var2 = (var2 & 4095) + (var12 & 786432);
-							var19 = var12 >> 20;
-							var12 += var13;
-						}
-					}
-				} else {
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var2 = (var2 & 4095) + (var12 & 786432);
-					var19 = var12 >> 20;
-					var12 += var13;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-					var2 += var16;
-					var3 += var17;
-					var0[var11++] = (var1[(var3 & 4032) + (var2 >> 6)] >>> var19) + (var0[var11] >> 1 & 8355711);
-				}
-			}
-
-		}
-	}
-
-	// int, int, int, int, int) void
-	private static void method_388(int[] var0, int var1, int var2, int var3, int[] var4, int var5, int var6, int var7,
-			int var8, int var9, int var10, int var11, int var12, int var13, int var14) {
-		if (var11 > 0) {
-			int var15 = 0;
-			int var16 = 0;
-			var14 <<= 2;
-			if (var7 != 0) {
-				var15 = var5 / var7 << 6;
-				var16 = var6 / var7 << 6;
-			}
-
-			if (var15 < 0) {
-				var15 = 0;
-			} else if (var15 > 4032) {
-				var15 = 4032;
-			}
-
-			for (int var19 = var11; var19 > 0; var19 -= 16) {
-				var5 += var8;
-				var6 += var9;
-				var7 += var10;
-				var2 = var15;
-				var3 = var16;
-				if (var7 != 0) {
-					var15 = var5 / var7 << 6;
-					var16 = var6 / var7 << 6;
-				}
-
-				if (var15 < 0) {
-					var15 = 0;
-				} else if (var15 > 4032) {
-					var15 = 4032;
-				}
-
-				int var17 = var15 - var2 >> 4;
-				int var18 = var16 - var3 >> 4;
-				int var20 = var13 >> 20;
-				var2 += var13 & 786432;
-				var13 += var14;
-				if (var19 < 16) {
-					for (int var21 = 0; var21 < var19; ++var21) {
-						if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-							var0[var12] = var1;
-						}
-
-						++var12;
-						var2 += var17;
-						var3 += var18;
-						if ((var21 & 3) == 3) {
-							var2 = (var2 & 4095) + (var13 & 786432);
-							var20 = var13 >> 20;
-							var13 += var14;
-						}
-					}
-				} else {
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 4095) + (var13 & 786432);
-					var20 = var13 >> 20;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 4095) + (var13 & 786432);
-					var20 = var13 >> 20;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					var2 = (var2 & 4095) + (var13 & 786432);
-					var20 = var13 >> 20;
-					var13 += var14;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-					var2 += var17;
-					var3 += var18;
-					if ((var1 = var4[(var3 & 4032) + (var2 >> 6)] >>> var20) != 0) {
-						var0[var12] = var1;
-					}
-
-					++var12;
-				}
-			}
-
-		}
-	}
-
-	private static void method_389(int[] var0, int var1, int var2, int var3, int[] var4, int var5, int var6) {
-		if (var1 < 0) {
-			var6 <<= 1;
-			var3 = var4[var5 >> 8 & 255];
-			var5 += var6;
-			int var7 = var1 / 8;
-
-			for (int var8 = var7; var8 < 0; ++var8) {
-				var0[var2++] = var3;
-				var0[var2++] = var3;
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3;
-				var0[var2++] = var3;
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3;
-				var0[var2++] = var3;
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3;
-				var0[var2++] = var3;
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-			}
-
-			var7 = -(var1 % 8);
-
-			for (int var9 = 0; var9 < var7; ++var9) {
-				var0[var2++] = var3;
-				if ((var9 & 1) == 1) {
-					var3 = var4[var5 >> 8 & 255];
-					var5 += var6;
-				}
-			}
-
-		}
-	}
-
-	private static void method_390(int[] var0, int var1, int var2, int var3, int[] var4, int var5, int var6) {
-		if (var1 < 0) {
-			var6 <<= 2;
-			var3 = var4[var5 >> 8 & 255];
-			var5 += var6;
-			int var7 = var1 / 16;
-
-			for (int var8 = var7; var8 < 0; ++var8) {
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				var3 = var4[var5 >> 8 & 255];
-				var5 += var6;
-			}
-
-			var7 = -(var1 % 16);
-
-			for (int var9 = 0; var9 < var7; ++var9) {
-				var0[var2++] = var3 + (var0[var2] >> 1 & 8355711);
-				if ((var9 & 3) == 3) {
-					var3 = var4[var5 >> 8 & 255];
-					var5 += var6;
-					var5 += var6;
+			init = -(len % 16);
+
+			for (int i = 0; i < init; ++i) {
+				out[ptr++] = col + (out[ptr] >> 1 & 8355711);
+				if ((i & 3) == 3) {
+					col = ramp[r >> 8 & 255];
+					r += r_step;
+					r += r_step;
 				}
 			}
 
@@ -2794,7 +2774,7 @@ public final class Scene {
 
 			for (int j = 0; j < off; ++j) {
 				out[out_ptr++] = col;
-				
+
 				if ((j & 3) == 3) {
 					col = ramp[r >> 8 & 255];
 					r += r_step;
@@ -2807,11 +2787,11 @@ public final class Scene {
 		yaw &= 1023;
 		pitch &= 1023;
 		roll &= 1023;
-		
+
 		cam_yaw = 1024 - yaw & 1023;
 		cam_pitch = 1024 - pitch & 1023;
 		cam_roll = 1024 - roll & 1023;
-		
+
 		int dx = 0;
 		int dy = 0;
 		int dz = dist;
@@ -2848,20 +2828,20 @@ public final class Scene {
 	private void init_poly_3d(int id) {
 		Polygon poly = polys[id];
 		Model model = poly.model;
-		
+
 		int face = poly.face;
 		int[] verts = model.face_verts[face];
 		int vert_cnt = model.face_vert_cnt[face];
 		int scale = model.norm_scale[face];
-		
+
 		int a_x = model.project_vert_x[verts[0]];
 		int a_y = model.project_vert_y[verts[0]];
 		int a_z = model.project_vert_z[verts[0]];
-		
+
 		int b_x = model.project_vert_x[verts[1]] - a_x;
 		int b_y = model.project_vert_y[verts[1]] - a_y;
 		int b_z = model.project_vert_z[verts[1]] - a_z;
-		
+
 		int c_x = model.project_vert_x[verts[2]] - a_x;
 		int c_y = model.project_vert_y[verts[2]] - a_y;
 		int c_z = model.project_vert_z[verts[2]] - a_z;
@@ -2871,14 +2851,16 @@ public final class Scene {
 		int norm_z = b_x * c_y - c_x * b_y;
 
 		if (scale == -1) {
-			for (scale = 0; norm_x > 25000 || norm_y > 25000 || norm_z > 25000 || norm_x < -25000 || norm_y < -25000 || norm_z < -25000; norm_z >>= 1) {
+			for (scale = 0; norm_x > 25000 || norm_y > 25000 || norm_z > 25000 || norm_x < -25000 || norm_y < -25000
+					|| norm_z < -25000; norm_z >>= 1) {
 				scale += 1;
 				norm_x >>= 1;
 				norm_y >>= 1;
 			}
 
 			model.norm_scale[face] = scale;
-			model.norm_mag[face] = (int) ((double) magnitude * Math.sqrt((double) (norm_x * norm_x + norm_y * norm_y + norm_z * norm_z)));
+			model.norm_mag[face] = (int) ((double) magnitude
+					* Math.sqrt((double) (norm_x * norm_x + norm_y * norm_y + norm_z * norm_z)));
 		} else {
 			norm_x >>= scale;
 			norm_y >>= scale;
@@ -2889,13 +2871,13 @@ public final class Scene {
 		poly.norm_x = norm_x;
 		poly.norm_y = norm_y;
 		poly.norm_z = norm_z;
-		
+
 		int min_z = model.project_vert_z[verts[0]];
 		int max_z = min_z;
-		
+
 		int min_x = model.project_plane_x[verts[0]];
 		int max_x = min_x;
-		
+
 		int min_y = model.project_plane_y[verts[0]];
 		int max_y = min_y;
 
@@ -2933,32 +2915,32 @@ public final class Scene {
 	private void init_poly_2d(int id) {
 		Polygon poly = polys[id];
 		Model model = poly.model;
-		
+
 		int face = poly.face;
 		int[] verts = model.face_verts[face];
-		
+
 		byte norm_x = 0;
 		byte norm_y = 0;
 		byte norm_z = 1;
-		
+
 		int a_x = model.project_vert_x[verts[0]];
 		int a_y = model.project_vert_y[verts[0]];
 		int a_z = model.project_vert_z[verts[0]];
-		
+
 		model.norm_mag[face] = 1;
 		model.norm_scale[face] = 0;
-		
+
 		poly.visibility = a_x * norm_x + a_y * norm_y + a_z * norm_z;
 		poly.norm_x = norm_x;
 		poly.norm_y = norm_y;
 		poly.norm_z = norm_z;
-		
+
 		int min_z = model.project_vert_z[verts[0]];
 		int max_z = min_z;
-		
+
 		int min_x = model.project_plane_x[verts[0]];
 		int max_x = min_x;
-		
+
 		if (model.project_plane_x[verts[1]] < min_x) {
 			min_x = model.project_plane_x[verts[1]];
 		} else {
@@ -2968,7 +2950,7 @@ public final class Scene {
 		int min_y = model.project_plane_y[verts[1]];
 		int max_y = model.project_plane_y[verts[0]];
 		int j = model.project_vert_z[verts[1]];
-		
+
 		if (j > min_z) {
 			max_z = j;
 		} else if (j < min_z) {
@@ -3189,7 +3171,7 @@ public final class Scene {
 		texture_id = new long[texture_sz];
 		texture_trans_back = new boolean[texture_sz];
 		texture_pixels = new int[texture_sz][];
-		
+
 		pool64 = new int[pool64_sz][];
 		pool256 = new int[pool256_sz][];
 		next_id = 0L;
@@ -3202,7 +3184,7 @@ public final class Scene {
 		texture_id[id] = 0L;
 		texture_trans_back[id] = false;
 		texture_pixels[id] = null;
-		
+
 		texture_prepare(id);
 	}
 
@@ -3210,15 +3192,13 @@ public final class Scene {
 		if (id < 0) {
 			return;
 		}
-		
+
 		texture_id[id] = (long) (next_id++);
-		
+
 		if (texture_pixels[id] != null) {
 			return;
 		}
-		
 
-		
 		if (texture_dim[id] == 0) {
 			for (int i = 0; i < pool64.length; ++i) {
 				if (pool64[i] == null) {
@@ -3283,7 +3263,7 @@ public final class Scene {
 			for (int x = 0; x < len; ++x) {
 				int pix = texture_palette[id][texture_raster[id][x + y * len] & 255];
 				pix &= 0xF8F8FF;
-				
+
 				if (pix == 0) {
 					pix = 1;
 				} else if (pix == 0xF800FF) {
@@ -3297,7 +3277,7 @@ public final class Scene {
 
 		for (int i = 0; i < ptr; ++i) {
 			int pix = raster[i];
-			raster[ptr + i]     = pix - (pix >>> 3) & 0xF8F8FF;
+			raster[ptr + i] = pix - (pix >>> 3) & 0xF8F8FF;
 			raster[ptr * 2 + i] = pix - (pix >>> 2) & 0xF8F8FF;
 			raster[ptr * 3 + i] = pix - (pix >>> 2) - (pix >>> 3) & 0xF8F8FF;
 		}
@@ -3325,7 +3305,7 @@ public final class Scene {
 			for (int i = 0; i < off; ++i) {
 				int pix = raster[i];
 
-				raster[off + i]     = pix - (pix >>> 3) & 0xF8F8FF;
+				raster[off + i] = pix - (pix >>> 3) & 0xF8F8FF;
 				raster[off * 2 + i] = pix - (pix >>> 2) & 0xF8F8FF;
 				raster[off * 3 + i] = pix - (pix >>> 2) - (pix >>> 3) & 0xF8F8FF;
 			}
@@ -3338,7 +3318,7 @@ public final class Scene {
 		}
 
 		texture_prepare(id);
-		
+
 		if (id >= 0) {
 			return texture_pixels[id][0];
 		} else if (id < 0) {
@@ -3348,7 +3328,7 @@ public final class Scene {
 			int b = id & 31;
 			return (r << 19) + (g << 11) + (b << 3);
 		}
-		
+
 		return 0;
 	}
 
@@ -3460,8 +3440,8 @@ public final class Scene {
 					min_y_idx_a = (min_y_idx_a - 1 + cnt_a) % cnt_a;
 				}
 
-				var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-						b_y[min_y_idx_b]);
+				var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+						a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 				var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 						a_y[var8], b_y[min_y_idx_b]);
 				var13 = b_x[min_y_idx_b];
@@ -3485,8 +3465,8 @@ public final class Scene {
 				}
 
 				var11 = a_x[min_y_idx_a];
-				var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-						a_y[min_y_idx_a]);
+				var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+						b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[min_y_idx_a]);
 				var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b], b_x[var10],
 						b_y[var10], a_y[min_y_idx_a]);
 				var16 = var11 < var13 | var11 < var14;
@@ -3508,8 +3488,8 @@ public final class Scene {
 							var11 = a_x[min_y_idx_a];
 							var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 									a_x[var8], a_y[var8], a_y[min_y_idx_a]);
-							var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-									b_y[min_y_idx_b], a_y[min_y_idx_a]);
+							var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+									b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[min_y_idx_a]);
 							var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 									b_x[var10], b_y[var10], a_y[min_y_idx_a]);
 							if (this.method_407(var11, var12, var13, var14, var16)) {
@@ -3521,12 +3501,12 @@ public final class Scene {
 								state = 1;
 							}
 						} else {
-							var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-									a_y[min_y_idx_a], b_y[var10]);
+							var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+									a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 							var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 									a_x[var8], a_y[var8], b_y[var10]);
-							var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-									b_y[min_y_idx_b], b_y[var10]);
+							var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+									b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 							var14 = b_x[var10];
 							if (this.method_407(var11, var12, var13, var14, var16)) {
 								return true;
@@ -3538,8 +3518,8 @@ public final class Scene {
 							}
 						}
 					} else if (b_y[min_y_idx_b] < b_y[var10]) {
-						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-								a_y[min_y_idx_a], b_y[min_y_idx_b]);
+						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+								a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 						var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 								a_x[var8], a_y[var8], b_y[min_y_idx_b]);
 						var13 = b_x[min_y_idx_b];
@@ -3554,12 +3534,12 @@ public final class Scene {
 							state = 2;
 						}
 					} else {
-						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-								a_y[min_y_idx_a], b_y[var10]);
+						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+								a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 						var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 								a_x[var8], a_y[var8], b_y[var10]);
-						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-								b_y[min_y_idx_b], b_y[var10]);
+						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+								b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 						var14 = b_x[var10];
 						if (this.method_407(var11, var12, var13, var14, var16)) {
 							return true;
@@ -3572,11 +3552,11 @@ public final class Scene {
 					}
 				} else if (a_y[var8] < b_y[min_y_idx_b]) {
 					if (a_y[var8] < b_y[var10]) {
-						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-								a_y[min_y_idx_a], a_y[var8]);
+						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+								a_x[min_y_idx_a], a_y[min_y_idx_a], a_y[var8]);
 						var12 = a_x[var8];
-						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-								b_y[min_y_idx_b], a_y[var8]);
+						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+								b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[var8]);
 						var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 								b_x[var10], b_y[var10], a_y[var8]);
 						if (this.method_407(var11, var12, var13, var14, var16)) {
@@ -3588,12 +3568,12 @@ public final class Scene {
 							state = 1;
 						}
 					} else {
-						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-								a_y[min_y_idx_a], b_y[var10]);
+						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+								a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 						var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 								a_x[var8], a_y[var8], b_y[var10]);
-						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-								b_y[min_y_idx_b], b_y[var10]);
+						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+								b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 						var14 = b_x[var10];
 						if (this.method_407(var11, var12, var13, var14, var16)) {
 							return true;
@@ -3605,8 +3585,8 @@ public final class Scene {
 						}
 					}
 				} else if (b_y[min_y_idx_b] < b_y[var10]) {
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							b_y[min_y_idx_b]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], b_y[min_y_idx_b]);
 					var13 = b_x[min_y_idx_b];
@@ -3621,12 +3601,12 @@ public final class Scene {
 						state = 2;
 					}
 				} else {
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							b_y[var10]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], b_y[var10]);
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							b_y[var10]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 					var14 = b_x[var10];
 					if (this.method_407(var11, var12, var13, var14, var16)) {
 						return true;
@@ -3643,8 +3623,8 @@ public final class Scene {
 				if (a_y[min_y_idx_a] < b_y[min_y_idx_b]) {
 					if (a_y[min_y_idx_a] < b_y[var10]) {
 						var11 = a_x[min_y_idx_a];
-						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b],
-								b_y[min_y_idx_b], a_y[min_y_idx_a]);
+						var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+								b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[min_y_idx_a]);
 						var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 								b_x[var10], b_y[var10], a_y[min_y_idx_a]);
 						if (this.method_408(var13, var14, var11, !var16)) {
@@ -3654,12 +3634,12 @@ public final class Scene {
 						return false;
 					}
 
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							b_y[var10]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], b_y[var10]);
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							b_y[var10]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 					var14 = b_x[var10];
 					if (this.method_407(var11, var12, var13, var14, var16)) {
 						return true;
@@ -3670,8 +3650,8 @@ public final class Scene {
 						state = 0;
 					}
 				} else if (b_y[min_y_idx_b] < b_y[var10]) {
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							b_y[min_y_idx_b]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], b_y[min_y_idx_b]);
 					var13 = b_x[min_y_idx_b];
@@ -3686,12 +3666,12 @@ public final class Scene {
 						state = 0;
 					}
 				} else {
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							b_y[var10]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[var10]);
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], b_y[var10]);
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							b_y[var10]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], b_y[var10]);
 					var14 = b_x[var10];
 					if (this.method_407(var11, var12, var13, var14, var16)) {
 						return true;
@@ -3707,8 +3687,8 @@ public final class Scene {
 			while (state == 2) {
 				if (b_y[min_y_idx_b] < a_y[min_y_idx_a]) {
 					if (b_y[min_y_idx_b] < a_y[var8]) {
-						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a],
-								a_y[min_y_idx_a], b_y[min_y_idx_b]);
+						var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+								a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 						var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a],
 								a_x[var8], a_y[var8], b_y[min_y_idx_b]);
 						var13 = b_x[min_y_idx_b];
@@ -3719,11 +3699,11 @@ public final class Scene {
 						return false;
 					}
 
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							a_y[var8]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], a_y[var8]);
 					var12 = a_x[var8];
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							a_y[var8]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[var8]);
 					var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 							b_x[var10], b_y[var10], a_y[var8]);
 					if (this.method_407(var11, var12, var13, var14, var16)) {
@@ -3738,8 +3718,8 @@ public final class Scene {
 					var11 = a_x[min_y_idx_a];
 					var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 							a_y[var8], a_y[min_y_idx_a]);
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							a_y[min_y_idx_a]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[min_y_idx_a]);
 					var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 							b_x[var10], b_y[var10], a_y[min_y_idx_a]);
 					if (this.method_407(var11, var12, var13, var14, var16)) {
@@ -3751,11 +3731,11 @@ public final class Scene {
 						state = 0;
 					}
 				} else {
-					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-							a_y[var8]);
+					var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+							a_x[min_y_idx_a], a_y[min_y_idx_a], a_y[var8]);
 					var12 = a_x[var8];
-					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-							a_y[var8]);
+					var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+							b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[var8]);
 					var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b],
 							b_x[var10], b_y[var10], a_y[var8]);
 					if (this.method_407(var11, var12, var13, var14, var16)) {
@@ -3771,8 +3751,8 @@ public final class Scene {
 
 			if (a_y[min_y_idx_a] < b_y[min_y_idx_b]) {
 				var11 = a_x[min_y_idx_a];
-				var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b], b_x[min_y_idx_b], b_y[min_y_idx_b],
-						a_y[min_y_idx_a]);
+				var13 = this.method_406(b_x[(min_y_idx_b + 1) % cnt_b], b_y[(min_y_idx_b + 1) % cnt_b],
+						b_x[min_y_idx_b], b_y[min_y_idx_b], a_y[min_y_idx_a]);
 				var14 = this.method_406(b_x[(var10 - 1 + cnt_b) % cnt_b], b_y[(var10 - 1 + cnt_b) % cnt_b], b_x[var10],
 						b_y[var10], a_y[min_y_idx_a]);
 				if (this.method_408(var13, var14, var11, !var16)) {
@@ -3781,8 +3761,8 @@ public final class Scene {
 					return false;
 				}
 			} else {
-				var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a], a_x[min_y_idx_a], a_y[min_y_idx_a],
-						b_y[min_y_idx_b]);
+				var11 = this.method_406(a_x[(min_y_idx_a + 1) % cnt_a], a_y[(min_y_idx_a + 1) % cnt_a],
+						a_x[min_y_idx_a], a_y[min_y_idx_a], b_y[min_y_idx_b]);
 				var12 = this.method_406(a_x[(var8 - 1 + cnt_a) % cnt_a], a_y[(var8 - 1 + cnt_a) % cnt_a], a_x[var8],
 						a_y[var8], b_y[min_y_idx_b]);
 				var13 = b_x[min_y_idx_b];
