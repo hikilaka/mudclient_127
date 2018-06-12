@@ -1,6 +1,6 @@
 package jagex.client;
 
-public class Polygon {
+public final class Polygon {
    protected int min_plane_x;
    protected int min_plane_y;
    protected int max_plane_x;
@@ -18,5 +18,4 @@ public class Polygon {
    protected boolean handled = false;
    protected int key;
    protected int successor = -1;
-
 }

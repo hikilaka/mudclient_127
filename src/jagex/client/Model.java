@@ -176,11 +176,13 @@ public final class Model {
 		light_mag = 256;
 		light_falloff = 512;
 		light_ambient = 32;
+
 		this.autocommit = autocommit;
 		this.no_bounds = no_bounds;
 		this.no_shading = no_shading;
 		this.unpickable = unpickable;
 		this.unrendered = unrendered;
+
 		allocate(vert_cnt, face_cnt);
 	}
 	
@@ -213,17 +215,17 @@ public final class Model {
 		field_313 = new int[face_cnt][1];
 
 		for (int i = 0; i < vert_cnt; ++i) {
-			vert_x[i] = DataUtil.method_8(buf, buf_ptr);
+			vert_x[i] = DataUtil.signed_short_get(buf, buf_ptr);
 			buf_ptr += 2;
 		}
 
 		for (int i = 0; i < vert_cnt; ++i) {
-			vert_y[i] = DataUtil.method_8(buf, buf_ptr);
+			vert_y[i] = DataUtil.signed_short_get(buf, buf_ptr);
 			buf_ptr += 2;
 		}
 
 		for (int i = 0; i < vert_cnt; ++i) {
-			vert_z[i] = DataUtil.method_8(buf, buf_ptr);
+			vert_z[i] = DataUtil.signed_short_get(buf, buf_ptr);
 			buf_ptr += 2;
 		}
 
@@ -234,7 +236,7 @@ public final class Model {
 		}
 
 		for (int i = 0; i < face_cnt; ++i) {
-			texture_front[i] = DataUtil.method_8(buf, buf_ptr);
+			texture_front[i] = DataUtil.signed_short_get(buf, buf_ptr);
 			buf_ptr += 2;
 
 			if (texture_front[i] == 32767) {
@@ -243,7 +245,7 @@ public final class Model {
 		}
 
 		for (int i = 0; i < face_cnt; ++i) {
-			texture_back[i] = DataUtil.method_8(buf, buf_ptr);
+			texture_back[i] = DataUtil.signed_short_get(buf, buf_ptr);
 			buf_ptr += 2;
 	
 			if (texture_back[i] == 32767) {
@@ -543,8 +545,8 @@ public final class Model {
 			face_max_z = new int[face_cnt];
 		}
 
-		face_cnt = 0;
-		vert_cnt = 0;
+		this.face_cnt = 0;
+		this.vert_cnt = 0;
 		max_vert_cnt = vert_cnt;
 		max_face_cnt = face_cnt;
 		base_x = base_y = base_z = 0;
@@ -1266,14 +1268,16 @@ public final class Model {
 	}
 
 	public Model copy() {
-		Model copy = new Model(new Model[] { this }, 1);
+		Model[] array = new Model[] { this };
+		Model copy = new Model(array, 1);
 		copy.depth = depth;
 		copy.trans = trans;
 		return copy;
 	}
 
 	public Model copy(boolean autocommit, boolean no_bounds, boolean no_shading, boolean unpickable) {
-		Model copy = new Model(new Model[] { this }, 1, autocommit, no_bounds, no_shading, unpickable);
+		Model[] array = new Model[] { this };
+		Model copy = new Model(array, 1, autocommit, no_bounds, no_shading, unpickable);
 		copy.depth = depth;
 		return copy;
 	}

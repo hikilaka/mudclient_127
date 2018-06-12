@@ -3485,8 +3485,8 @@ public class mudclient extends MultiplayerGame {
 					var20 = (len - 1) / 4;
 
 					for (var21 = 0; var21 < var20; ++var21) {
-						var6 = this.qbb + DataUtil.method_8(buf, 1 + var21 * 4) >> 3;
-						var7 = this.rbb + DataUtil.method_8(buf, 3 + var21 * 4) >> 3;
+						var6 = this.qbb + DataUtil.signed_short_get(buf, 1 + var21 * 4) >> 3;
+						var7 = this.rbb + DataUtil.signed_short_get(buf, 3 + var21 * 4) >> 3;
 						var8 = 0;
 
 						for (var9 = 0; var9 < this.ccb; ++var9) {
