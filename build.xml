@@ -28,5 +28,14 @@
 				<pathelement path="${jar}/" />
 			</classpath>
 		</java>
+	</target>
+
+	<target name="model-view">
+		<java classname="ModelDemo" fork="true">
+			<arg value="${settings}" />
+			<classpath>
+				<pathelement path="${jar}/" />
+			</classpath>
+		</java>
 	</target>	
 </project>
