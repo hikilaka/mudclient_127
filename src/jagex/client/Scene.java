@@ -762,442 +762,412 @@ public final class Scene {
 
 	private void gen_scanlines(int start_x, int x, int a_ptr, int start_s, int vert_cnt, int[] vert_x, int[] vert_y,
 			int[] vert_shade, Model model, int face) {
-		int var11;
-		int var12;
-		int var13;
-		int var14;
-		int var15;
-		int var16;
-		int var17;
-		int var18;
-		int var19;
-		int var20;
-		int var21;
-		int var22;
-		int var23;
-		int var24;
-		int var25;
-		int var26;
-		int var27;
-		int var28;
-		int var29;
-		int var30;
-		int var31;
-		int var32;
-		int var33;
-		int var34;
-		int var35;
-		int var36;
-		int var37;
-		int var38;
-		int var39;
-		Scanline var50;
 		if (vert_cnt == 3) {
-			var11 = vert_y[0] + this.base_y;
-			var12 = vert_y[1] + this.base_y;
-			var13 = vert_y[2] + this.base_y;
-			var14 = vert_x[0];
-			var15 = vert_x[1];
-			var16 = vert_x[2];
-			var17 = vert_shade[0];
-			var18 = vert_shade[1];
-			var19 = vert_shade[2];
-			var20 = this.base_y + this.clip_y - 1;
-			var21 = 0;
-			var22 = 0;
-			var23 = 0;
-			var24 = 0;
-			var25 = 12345678;
-			var26 = -12345678;
-			if (var13 != var11) {
-				var22 = (var16 - var14 << 8) / (var13 - var11);
-				var24 = (var19 - var17 << 8) / (var13 - var11);
-				if (var11 < var13) {
-					var21 = var14 << 8;
-					var23 = var17 << 8;
-					var25 = var11;
-					var26 = var13;
+			int a_y = vert_y[0] + base_y;
+			int b_y = vert_y[1] + base_y;
+			int c_y = vert_y[2] + base_y;
+			int a_x = vert_x[0];
+			int b_x = vert_x[1];
+			int c_x = vert_x[2];
+			int a_s = vert_shade[0];
+			int b_s = vert_shade[1];
+			int c_s = vert_shade[2];
+			int max_y = base_y + clip_y - 1;
+			int ac_start_x = 0;
+			int ac_dx = 0;
+			int ac_start_s = 0;
+			int ac_ds = 0;
+			int ac_start_y = 12345678;
+			int ac_end_y = -12345678;
+			if (c_y != a_y) {
+				ac_dx = (c_x - a_x << 8) / (c_y - a_y);
+				ac_ds = (c_s - a_s << 8) / (c_y - a_y);
+				if (a_y < c_y) {
+					ac_start_x = a_x << 8;
+					ac_start_s = a_s << 8;
+					ac_start_y = a_y;
+					ac_end_y = c_y;
 				} else {
-					var21 = var16 << 8;
-					var23 = var19 << 8;
-					var25 = var13;
-					var26 = var11;
+					ac_start_x = c_x << 8;
+					ac_start_s = c_s << 8;
+					ac_start_y = c_y;
+					ac_end_y = a_y;
 				}
 
-				if (var25 < 0) {
-					var21 -= var22 * var25;
-					var23 -= var24 * var25;
-					var25 = 0;
+				if (ac_start_y < 0) {
+					ac_start_x -= ac_dx * ac_start_y;
+					ac_start_s -= ac_ds * ac_start_y;
+					ac_start_y = 0;
 				}
 
-				if (var26 > var20) {
-					var26 = var20;
+				if (ac_end_y > max_y) {
+					ac_end_y = max_y;
 				}
 			}
 
-			var27 = 0;
-			var28 = 0;
-			var29 = 0;
-			var30 = 0;
-			var31 = 12345678;
-			var32 = -12345678;
-			if (var12 != var11) {
-				var28 = (var15 - var14 << 8) / (var12 - var11);
-				var30 = (var18 - var17 << 8) / (var12 - var11);
-				if (var11 < var12) {
-					var27 = var14 << 8;
-					var29 = var17 << 8;
-					var31 = var11;
-					var32 = var12;
+			int ab_start_x = 0;
+			int ab_dx = 0;
+			int ab_start_s = 0;
+			int ab_ds = 0;
+			int ab_start_y = 12345678;
+			int ab_end_y = -12345678;
+			if (b_y != a_y) {
+				ab_dx = (b_x - a_x << 8) / (b_y - a_y);
+				ab_ds = (b_s - a_s << 8) / (b_y - a_y);
+				if (a_y < b_y) {
+					ab_start_x = a_x << 8;
+					ab_start_s = a_s << 8;
+					ab_start_y = a_y;
+					ab_end_y = b_y;
 				} else {
-					var27 = var15 << 8;
-					var29 = var18 << 8;
-					var31 = var12;
-					var32 = var11;
+					ab_start_x = b_x << 8;
+					ab_start_s = b_s << 8;
+					ab_start_y = b_y;
+					ab_end_y = a_y;
 				}
 
-				if (var31 < 0) {
-					var27 -= var28 * var31;
-					var29 -= var30 * var31;
-					var31 = 0;
+				if (ab_start_y < 0) {
+					ab_start_x -= ab_dx * ab_start_y;
+					ab_start_s -= ab_ds * ab_start_y;
+					ab_start_y = 0;
 				}
 
-				if (var32 > var20) {
-					var32 = var20;
+				if (ab_end_y > max_y) {
+					ab_end_y = max_y;
 				}
 			}
 
-			var33 = 0;
-			var34 = 0;
-			var35 = 0;
-			var36 = 0;
-			var37 = 12345678;
-			var38 = -12345678;
-			if (var13 != var12) {
-				var34 = (var16 - var15 << 8) / (var13 - var12);
-				var36 = (var19 - var18 << 8) / (var13 - var12);
-				if (var12 < var13) {
-					var33 = var15 << 8;
-					var35 = var18 << 8;
-					var37 = var12;
-					var38 = var13;
+			int bc_start_x = 0;
+			int bc_dx = 0;
+			int bc_start_s = 0;
+			int bc_ds = 0;
+			int bc_start_y = 12345678;
+			int bc_end_y = -12345678;
+			if (c_y != b_y) {
+				bc_dx = (c_x - b_x << 8) / (c_y - b_y);
+				bc_ds = (c_s - b_s << 8) / (c_y - b_y);
+				if (b_y < c_y) {
+					bc_start_x = b_x << 8;
+					bc_start_s = b_s << 8;
+					bc_start_y = b_y;
+					bc_end_y = c_y;
 				} else {
-					var33 = var16 << 8;
-					var35 = var19 << 8;
-					var37 = var13;
-					var38 = var12;
+					bc_start_x = c_x << 8;
+					bc_start_s = c_s << 8;
+					bc_start_y = c_y;
+					bc_end_y = b_y;
 				}
 
-				if (var37 < 0) {
-					var33 -= var34 * var37;
-					var35 -= var36 * var37;
-					var37 = 0;
+				if (bc_start_y < 0) {
+					bc_start_x -= bc_dx * bc_start_y;
+					bc_start_s -= bc_ds * bc_start_y;
+					bc_start_y = 0;
 				}
 
-				if (var38 > var20) {
-					var38 = var20;
+				if (bc_end_y > max_y) {
+					bc_end_y = max_y;
 				}
 			}
 
-			this.min_y = var25;
-			if (var31 < this.min_y) {
-				this.min_y = var31;
+			min_y = ac_start_y;
+			if (ab_start_y < min_y) {
+				min_y = ab_start_y;
 			}
 
-			if (var37 < this.min_y) {
-				this.min_y = var37;
+			if (bc_start_y < min_y) {
+				min_y = bc_start_y;
 			}
 
-			this.max_y = var26;
-			if (var32 > this.max_y) {
-				this.max_y = var32;
+			this.max_y = ac_end_y;
+			if (ab_end_y > this.max_y) {
+				this.max_y = ab_end_y;
 			}
 
-			if (var38 > this.max_y) {
-				this.max_y = var38;
+			if (bc_end_y > this.max_y) {
+				this.max_y = bc_end_y;
 			}
 
-			var39 = 0;
+			int s = 0;
 
-			for (a_ptr = this.min_y; a_ptr < this.max_y; ++a_ptr) {
-				if (a_ptr >= var25 && a_ptr < var26) {
-					x = var21;
-					start_x = var21;
-					var39 = var23;
-					start_s = var23;
-					var21 += var22;
-					var23 += var24;
+			for (a_ptr = min_y; a_ptr < max_y; ++a_ptr) {
+				if (a_ptr >= ac_start_y && a_ptr < ac_end_y) {
+					x = ac_start_x;
+					start_x = ac_start_x;
+					s = ac_start_s;
+					start_s = ac_start_s;
+					ac_start_x += ac_dx;
+					ac_start_s += ac_ds;
 				} else {
 					start_x = 655360;
 					x = -655360;
 				}
 
-				if (a_ptr >= var31 && a_ptr < var32) {
-					if (var27 < start_x) {
-						start_x = var27;
-						start_s = var29;
+				if (a_ptr >= ab_start_y && a_ptr < ab_end_y) {
+					if (ab_start_x < start_x) {
+						start_x = ab_start_x;
+						start_s = ab_start_s;
 					}
 
-					if (var27 > x) {
-						x = var27;
-						var39 = var29;
+					if (ab_start_x > x) {
+						x = ab_start_x;
+						s = ab_start_s;
 					}
 
-					var27 += var28;
-					var29 += var30;
+					ab_start_x += ab_dx;
+					ab_start_s += ab_ds;
 				}
 
-				if (a_ptr >= var37 && a_ptr < var38) {
-					if (var33 < start_x) {
-						start_x = var33;
-						start_s = var35;
+				if (a_ptr >= bc_start_y && a_ptr < bc_end_y) {
+					if (bc_start_x < start_x) {
+						start_x = bc_start_x;
+						start_s = bc_start_s;
 					}
 
-					if (var33 > x) {
-						x = var33;
-						var39 = var35;
+					if (bc_start_x > x) {
+						x = bc_start_x;
+						s = bc_start_s;
 					}
 
-					var33 += var34;
-					var35 += var36;
+					bc_start_x += bc_dx;
+					bc_start_s += bc_ds;
 				}
 
-				Scanline var40 = this.scanlines[a_ptr];
-				var40.start_x = start_x;
-				var40.end_x = x;
-				var40.start_s = start_s;
-				var40.end_s = var39;
+				Scanline line = scanlines[a_ptr];
+				line.start_x = start_x;
+				line.end_x = x;
+				line.start_s = start_s;
+				line.end_s = s;
 			}
 
-			if (this.min_y < this.base_y - this.clip_y) {
-				this.min_y = this.base_y - this.clip_y;
+			if (min_y < base_y - clip_y) {
+				min_y = base_y - clip_y;
 			}
 		} else if (vert_cnt == 4) {
-			var11 = vert_y[0] + this.base_y;
-			var12 = vert_y[1] + this.base_y;
-			var13 = vert_y[2] + this.base_y;
-			var14 = vert_y[3] + this.base_y;
-			var15 = vert_x[0];
-			var16 = vert_x[1];
-			var17 = vert_x[2];
-			var18 = vert_x[3];
-			var19 = vert_shade[0];
-			var20 = vert_shade[1];
-			var21 = vert_shade[2];
-			var22 = vert_shade[3];
-			var23 = this.base_y + this.clip_y - 1;
-			var24 = 0;
-			var25 = 0;
-			var26 = 0;
-			var27 = 0;
-			var28 = 12345678;
-			var29 = -12345678;
-			if (var14 != var11) {
-				var25 = (var18 - var15 << 8) / (var14 - var11);
-				var27 = (var22 - var19 << 8) / (var14 - var11);
-				if (var11 < var14) {
-					var24 = var15 << 8;
-					var26 = var19 << 8;
-					var28 = var11;
-					var29 = var14;
+			int a_y = vert_y[0] + base_y;
+			int b_y = vert_y[1] + base_y;
+			int c_y = vert_y[2] + base_y;
+			int d_y = vert_y[3] + base_y;
+			int a_x = vert_x[0];
+			int b_x = vert_x[1];
+			int c_x = vert_x[2];
+			int d_x = vert_x[3];
+			int a_s = vert_shade[0];
+			int b_s = vert_shade[1];
+			int c_s = vert_shade[2];
+			int d_s = vert_shade[3];
+			int max_y = base_y + clip_y - 1;
+			int ad_start_x = 0;
+			int ad_dx = 0;
+			int ad_start_s = 0;
+			int ad_ds = 0;
+			int ad_start_y = 12345678;
+			int ad_end_y = -12345678;
+			if (d_y != a_y) {
+				ad_dx = (d_x - a_x << 8) / (d_y - a_y);
+				ad_ds = (d_s - a_s << 8) / (d_y - a_y);
+				if (a_y < d_y) {
+					ad_start_x = a_x << 8;
+					ad_start_s = a_s << 8;
+					ad_start_y = a_y;
+					ad_end_y = d_y;
 				} else {
-					var24 = var18 << 8;
-					var26 = var22 << 8;
-					var28 = var14;
-					var29 = var11;
+					ad_start_x = d_x << 8;
+					ad_start_s = d_s << 8;
+					ad_start_y = d_y;
+					ad_end_y = a_y;
 				}
 
-				if (var28 < 0) {
-					var24 -= var25 * var28;
-					var26 -= var27 * var28;
-					var28 = 0;
+				if (ad_start_y < 0) {
+					ad_start_x -= ad_dx * ad_start_y;
+					ad_start_s -= ad_ds * ad_start_y;
+					ad_start_y = 0;
 				}
 
-				if (var29 > var23) {
-					var29 = var23;
+				if (ad_end_y > max_y) {
+					ad_end_y = max_y;
 				}
 			}
 
-			var30 = 0;
-			var31 = 0;
-			var32 = 0;
-			var33 = 0;
-			var34 = 12345678;
-			var35 = -12345678;
-			if (var12 != var11) {
-				var31 = (var16 - var15 << 8) / (var12 - var11);
-				var33 = (var20 - var19 << 8) / (var12 - var11);
-				if (var11 < var12) {
-					var30 = var15 << 8;
-					var32 = var19 << 8;
-					var34 = var11;
-					var35 = var12;
+			int ab_start_x = 0;
+			int ab_dx = 0;
+			int ab_start_s = 0;
+			int ab_ds = 0;
+			int ab_start_y = 12345678;
+			int ab_end_y = -12345678;
+			if (b_y != a_y) {
+				ab_dx = (b_x - a_x << 8) / (b_y - a_y);
+				ab_ds = (b_s - a_s << 8) / (b_y - a_y);
+				if (a_y < b_y) {
+					ab_start_x = a_x << 8;
+					ab_start_s = a_s << 8;
+					ab_start_y = a_y;
+					ab_end_y = b_y;
 				} else {
-					var30 = var16 << 8;
-					var32 = var20 << 8;
-					var34 = var12;
-					var35 = var11;
+					ab_start_x = b_x << 8;
+					ab_start_s = b_s << 8;
+					ab_start_y = b_y;
+					ab_end_y = a_y;
 				}
 
-				if (var34 < 0) {
-					var30 -= var31 * var34;
-					var32 -= var33 * var34;
-					var34 = 0;
+				if (ab_start_y < 0) {
+					ab_start_x -= ab_dx * ab_start_y;
+					ab_start_s -= ab_ds * ab_start_y;
+					ab_start_y = 0;
 				}
 
-				if (var35 > var23) {
-					var35 = var23;
+				if (ab_end_y > max_y) {
+					ab_end_y = max_y;
 				}
 			}
 
-			var36 = 0;
-			var37 = 0;
-			var38 = 0;
-			var39 = 0;
-			int var53 = 12345678;
-			int var41 = -12345678;
-			if (var13 != var12) {
-				var37 = (var17 - var16 << 8) / (var13 - var12);
-				var39 = (var21 - var20 << 8) / (var13 - var12);
-				if (var12 < var13) {
-					var36 = var16 << 8;
-					var38 = var20 << 8;
-					var53 = var12;
-					var41 = var13;
+			int bc_start_x = 0;
+			int bc_dx = 0;
+			int bc_start_s = 0;
+			int bc_ds = 0;
+			int bc_start_y = 12345678;
+			int bc_end_y = -12345678;
+			if (c_y != b_y) {
+				bc_dx = (c_x - b_x << 8) / (c_y - b_y);
+				bc_ds = (c_s - b_s << 8) / (c_y - b_y);
+				if (b_y < c_y) {
+					bc_start_x = b_x << 8;
+					bc_start_s = b_s << 8;
+					bc_start_y = b_y;
+					bc_end_y = c_y;
 				} else {
-					var36 = var17 << 8;
-					var38 = var21 << 8;
-					var53 = var13;
-					var41 = var12;
+					bc_start_x = c_x << 8;
+					bc_start_s = c_s << 8;
+					bc_start_y = c_y;
+					bc_end_y = b_y;
 				}
 
-				if (var53 < 0) {
-					var36 -= var37 * var53;
-					var38 -= var39 * var53;
-					var53 = 0;
+				if (bc_start_y < 0) {
+					bc_start_x -= bc_dx * bc_start_y;
+					bc_start_s -= bc_ds * bc_start_y;
+					bc_start_y = 0;
 				}
 
-				if (var41 > var23) {
-					var41 = var23;
+				if (bc_end_y > max_y) {
+					bc_end_y = max_y;
 				}
 			}
 
-			int var42 = 0;
-			int var43 = 0;
-			int var44 = 0;
-			int var45 = 0;
-			int var46 = 12345678;
-			int var47 = -12345678;
-			if (var14 != var13) {
-				var43 = (var18 - var17 << 8) / (var14 - var13);
-				var45 = (var22 - var21 << 8) / (var14 - var13);
-				if (var13 < var14) {
-					var42 = var17 << 8;
-					var44 = var21 << 8;
-					var46 = var13;
-					var47 = var14;
+			int cd_start_x = 0;
+			int cd_dx = 0;
+			int cd_start_s = 0;
+			int cd_ds = 0;
+			int cd_start_y = 12345678;
+			int cd_end_y = -12345678;
+			if (d_y != c_y) {
+				cd_dx = (d_x - c_x << 8) / (d_y - c_y);
+				cd_ds = (d_s - c_s << 8) / (d_y - c_y);
+				if (c_y < d_y) {
+					cd_start_x = c_x << 8;
+					cd_start_s = c_s << 8;
+					cd_start_y = c_y;
+					cd_end_y = d_y;
 				} else {
-					var42 = var18 << 8;
-					var44 = var22 << 8;
-					var46 = var14;
-					var47 = var13;
+					cd_start_x = d_x << 8;
+					cd_start_s = d_s << 8;
+					cd_start_y = d_y;
+					cd_end_y = c_y;
 				}
 
-				if (var46 < 0) {
-					var42 -= var43 * var46;
-					var44 -= var45 * var46;
-					var46 = 0;
+				if (cd_start_y < 0) {
+					cd_start_x -= cd_dx * cd_start_y;
+					cd_start_s -= cd_ds * cd_start_y;
+					cd_start_y = 0;
 				}
 
-				if (var47 > var23) {
-					var47 = var23;
+				if (cd_end_y > max_y) {
+					cd_end_y = max_y;
 				}
 			}
 
-			this.min_y = var28;
-			if (var34 < this.min_y) {
-				this.min_y = var34;
+			min_y = ad_start_y;
+			if (ab_start_y < min_y) {
+				min_y = ab_start_y;
 			}
 
-			if (var53 < this.min_y) {
-				this.min_y = var53;
+			if (bc_start_y < min_y) {
+				min_y = bc_start_y;
 			}
 
-			if (var46 < this.min_y) {
-				this.min_y = var46;
+			if (cd_start_y < min_y) {
+				min_y = cd_start_y;
 			}
 
-			this.max_y = var29;
-			if (var35 > this.max_y) {
-				this.max_y = var35;
+			this.max_y = ad_end_y;
+			if (ab_end_y > this.max_y) {
+				this.max_y = ab_end_y;
 			}
 
-			if (var41 > this.max_y) {
-				this.max_y = var41;
+			if (bc_end_y > this.max_y) {
+				this.max_y = bc_end_y;
 			}
 
-			if (var47 > this.max_y) {
-				this.max_y = var47;
+			if (cd_end_y > this.max_y) {
+				this.max_y = cd_end_y;
 			}
 
 			int var48 = 0;
 
 			for (a_ptr = this.min_y; a_ptr < this.max_y; ++a_ptr) {
-				if (a_ptr >= var28 && a_ptr < var29) {
-					x = var24;
-					start_x = var24;
-					var48 = var26;
-					start_s = var26;
-					var24 += var25;
-					var26 += var27;
+				if (a_ptr >= ad_start_y && a_ptr < ad_end_y) {
+					x = ad_start_x;
+					start_x = ad_start_x;
+					var48 = ad_start_s;
+					start_s = ad_start_s;
+					ad_start_x += ad_dx;
+					ad_start_s += ad_ds;
 				} else {
 					start_x = 655360;
 					x = -655360;
 				}
 
-				if (a_ptr >= var34 && a_ptr < var35) {
-					if (var30 < start_x) {
-						start_x = var30;
-						start_s = var32;
+				if (a_ptr >= ab_start_y && a_ptr < ab_end_y) {
+					if (ab_start_x < start_x) {
+						start_x = ab_start_x;
+						start_s = ab_start_s;
 					}
 
-					if (var30 > x) {
-						x = var30;
-						var48 = var32;
+					if (ab_start_x > x) {
+						x = ab_start_x;
+						var48 = ab_start_s;
 					}
 
-					var30 += var31;
-					var32 += var33;
+					ab_start_x += ab_dx;
+					ab_start_s += ab_ds;
 				}
 
-				if (a_ptr >= var53 && a_ptr < var41) {
-					if (var36 < start_x) {
-						start_x = var36;
-						start_s = var38;
+				if (a_ptr >= bc_start_y && a_ptr < bc_end_y) {
+					if (bc_start_x < start_x) {
+						start_x = bc_start_x;
+						start_s = bc_start_s;
 					}
 
-					if (var36 > x) {
-						x = var36;
-						var48 = var38;
+					if (bc_start_x > x) {
+						x = bc_start_x;
+						var48 = bc_start_s;
 					}
 
-					var36 += var37;
-					var38 += var39;
+					bc_start_x += bc_dx;
+					bc_start_s += bc_ds;
 				}
 
-				if (a_ptr >= var46 && a_ptr < var47) {
-					if (var42 < start_x) {
-						start_x = var42;
-						start_s = var44;
+				if (a_ptr >= cd_start_y && a_ptr < cd_end_y) {
+					if (cd_start_x < start_x) {
+						start_x = cd_start_x;
+						start_s = cd_start_s;
 					}
 
-					if (var42 > x) {
-						x = var42;
-						var48 = var44;
+					if (cd_start_x > x) {
+						x = cd_start_x;
+						var48 = cd_start_s;
 					}
 
-					var42 += var43;
-					var44 += var45;
+					cd_start_x += cd_dx;
+					cd_start_s += cd_ds;
 				}
 
 				Scanline var49 = this.scanlines[a_ptr];
@@ -1214,10 +1184,11 @@ public final class Scene {
 			this.max_y = this.min_y = vert_y[0] += this.base_y;
 
 			for (a_ptr = 1; a_ptr < vert_cnt; ++a_ptr) {
-				if ((var11 = vert_y[a_ptr] += this.base_y) < this.min_y) {
-					this.min_y = var11;
-				} else if (var11 > this.max_y) {
-					this.max_y = var11;
+				int v_y = vert_y[a_ptr];
+				if ((v_y += this.base_y) < this.min_y) {
+					this.min_y = v_y;
+				} else if (v_y > this.max_y) {
+					this.max_y = v_y;
 				}
 			}
 
@@ -1234,125 +1205,124 @@ public final class Scene {
 			}
 
 			for (a_ptr = this.min_y; a_ptr < this.max_y; ++a_ptr) {
-				var50 = this.scanlines[a_ptr];
-				var50.start_x = 655360;
-				var50.end_x = -655360;
+				Scanline line = scanlines[a_ptr];
+				line.start_x = 655360;
+				line.end_x = -655360;
 			}
 
-			var11 = vert_cnt - 1;
-			var12 = vert_y[0];
-			var13 = vert_y[var11];
-			Scanline var51;
-			if (var12 < var13) {
-				var14 = vert_x[0] << 8;
-				var15 = (vert_x[var11] - vert_x[0] << 8) / (var13 - var12);
-				var16 = vert_shade[0] << 8;
-				var17 = (vert_shade[var11] - vert_shade[0] << 8) / (var13 - var12);
-				if (var12 < 0) {
-					var14 -= var15 * var12;
-					var16 -= var17 * var12;
-					var12 = 0;
+			int last = vert_cnt - 1;
+			int u_y = vert_y[0];
+			int v_y = vert_y[last];
+
+			if (u_y < v_y) {
+				int uv_start_x = vert_x[0] << 8;
+				int uv_dx = (vert_x[last] - vert_x[0] << 8) / (v_y - u_y);
+				int uv_start_s = vert_shade[0] << 8;
+				int uv_ds = (vert_shade[last] - vert_shade[0] << 8) / (v_y - u_y);
+				if (u_y < 0) {
+					uv_start_x -= uv_dx * u_y;
+					uv_start_s -= uv_ds * u_y;
+					u_y = 0;
 				}
 
-				if (var13 > this.max_y) {
-					var13 = this.max_y;
+				if (v_y > this.max_y) {
+					v_y = this.max_y;
 				}
 
-				for (a_ptr = var12; a_ptr <= var13; ++a_ptr) {
-					var51 = this.scanlines[a_ptr];
-					var51.start_x = var51.end_x = var14;
-					var51.start_s = var51.end_s = var16;
-					var14 += var15;
-					var16 += var17;
+				for (a_ptr = u_y; a_ptr <= v_y; ++a_ptr) {
+					Scanline line = scanlines[a_ptr];
+					line.start_x = line.end_x = uv_start_x;
+					line.start_s = line.end_s = uv_start_s;
+					uv_start_x += uv_dx;
+					uv_start_s += uv_ds;
 				}
-			} else if (var12 > var13) {
-				var14 = vert_x[var11] << 8;
-				var15 = (vert_x[0] - vert_x[var11] << 8) / (var12 - var13);
-				var16 = vert_shade[var11] << 8;
-				var17 = (vert_shade[0] - vert_shade[var11] << 8) / (var12 - var13);
-				if (var13 < 0) {
-					var14 -= var15 * var13;
-					var16 -= var17 * var13;
-					var13 = 0;
-				}
-
-				if (var12 > this.max_y) {
-					var12 = this.max_y;
+			} else if (u_y > v_y) {
+				int uv_start_x = vert_x[last] << 8;
+				int uv_dx = (vert_x[0] - vert_x[last] << 8) / (u_y - v_y);
+				int uv_start_s = vert_shade[last] << 8;
+				int uv_ds = (vert_shade[0] - vert_shade[last] << 8) / (u_y - v_y);
+				if (v_y < 0) {
+					uv_start_x -= uv_dx * v_y;
+					uv_start_s -= uv_ds * v_y;
+					v_y = 0;
 				}
 
-				for (a_ptr = var13; a_ptr <= var12; ++a_ptr) {
-					var51 = this.scanlines[a_ptr];
-					var51.start_x = var51.end_x = var14;
-					var51.start_s = var51.end_s = var16;
-					var14 += var15;
-					var16 += var17;
+				if (u_y > this.max_y) {
+					u_y = this.max_y;
+				}
+
+				for (a_ptr = v_y; a_ptr <= u_y; ++a_ptr) {
+					Scanline line = scanlines[a_ptr];
+					line.start_x = line.end_x = uv_start_x;
+					line.start_s = line.end_s = uv_start_s;
+					uv_start_x += uv_dx;
+					uv_start_s += uv_ds;
 				}
 			}
 
-			for (a_ptr = 0; a_ptr < var11; ++a_ptr) {
-				var14 = a_ptr + 1;
-				var12 = vert_y[a_ptr];
-				var13 = vert_y[var14];
-				Scanline var52;
-				if (var12 < var13) {
-					var15 = vert_x[a_ptr] << 8;
-					var16 = (vert_x[var14] - vert_x[a_ptr] << 8) / (var13 - var12);
-					var17 = vert_shade[a_ptr] << 8;
-					var18 = (vert_shade[var14] - vert_shade[a_ptr] << 8) / (var13 - var12);
-					if (var12 < 0) {
-						var15 -= var16 * var12;
-						var17 -= var18 * var12;
-						var12 = 0;
+			for (a_ptr = 0; a_ptr < last; ++a_ptr) {
+				int var14 = a_ptr + 1;
+				u_y = vert_y[a_ptr];
+				v_y = vert_y[var14];
+				if (u_y < v_y) {
+					int uv_start_x = vert_x[a_ptr] << 8;
+					int uv_dx = (vert_x[var14] - vert_x[a_ptr] << 8) / (v_y - u_y);
+					int uv_start_s = vert_shade[a_ptr] << 8;
+					int uv_ds = (vert_shade[var14] - vert_shade[a_ptr] << 8) / (v_y - u_y);
+					if (u_y < 0) {
+						uv_start_x -= uv_dx * u_y;
+						uv_start_s -= uv_ds * u_y;
+						u_y = 0;
 					}
 
-					if (var13 > this.max_y) {
-						var13 = this.max_y;
+					if (v_y > this.max_y) {
+						v_y = this.max_y;
 					}
 
-					for (var19 = var12; var19 <= var13; ++var19) {
-						var52 = this.scanlines[var19];
-						if (var15 < var52.start_x) {
-							var52.start_x = var15;
-							var52.start_s = var17;
+					for (int i = u_y; i <= v_y; ++i) {
+						Scanline line = scanlines[i];
+						if (uv_start_x < line.start_x) {
+							line.start_x = uv_start_x;
+							line.start_s = uv_start_s;
 						}
 
-						if (var15 > var52.end_x) {
-							var52.end_x = var15;
-							var52.end_s = var17;
+						if (uv_start_x > line.end_x) {
+							line.end_x = uv_start_x;
+							line.end_s = uv_start_s;
 						}
 
-						var15 += var16;
-						var17 += var18;
+						uv_start_x += uv_dx;
+						uv_start_s += uv_ds;
 					}
-				} else if (var12 > var13) {
-					var15 = vert_x[var14] << 8;
-					var16 = (vert_x[a_ptr] - vert_x[var14] << 8) / (var12 - var13);
-					var17 = vert_shade[var14] << 8;
-					var18 = (vert_shade[a_ptr] - vert_shade[var14] << 8) / (var12 - var13);
-					if (var13 < 0) {
-						var15 -= var16 * var13;
-						var17 -= var18 * var13;
-						var13 = 0;
-					}
-
-					if (var12 > this.max_y) {
-						var12 = this.max_y;
+				} else if (u_y > v_y) {
+					int uv_start_x = vert_x[var14] << 8;
+					int uv_dx = (vert_x[a_ptr] - vert_x[var14] << 8) / (u_y - v_y);
+					int uv_start_s = vert_shade[var14] << 8;
+					int uv_ds = (vert_shade[a_ptr] - vert_shade[var14] << 8) / (u_y - v_y);
+					if (v_y < 0) {
+						uv_start_x -= uv_dx * v_y;
+						uv_start_s -= uv_ds * v_y;
+						v_y = 0;
 					}
 
-					for (var19 = var13; var19 <= var12; ++var19) {
-						var52 = this.scanlines[var19];
-						if (var15 < var52.start_x) {
-							var52.start_x = var15;
-							var52.start_s = var17;
+					if (u_y > this.max_y) {
+						u_y = this.max_y;
+					}
+
+					for (int i = v_y; i <= u_y; ++i) {
+						Scanline line = scanlines[i];
+						if (uv_start_x < line.start_x) {
+							line.start_x = uv_start_x;
+							line.start_s = uv_start_s;
 						}
 
-						if (var15 > var52.end_x) {
-							var52.end_x = var15;
-							var52.end_s = var17;
+						if (uv_start_x > line.end_x) {
+							line.end_x = uv_start_x;
+							line.end_s = uv_start_s;
 						}
 
-						var15 += var16;
-						var17 += var18;
+						uv_start_x += uv_dx;
+						uv_start_s += uv_ds;
 					}
 				}
 			}
@@ -1362,14 +1332,13 @@ public final class Scene {
 			}
 		}
 
-		if (this.picking_active && this.picked_cnt < this.max_picked && this.click_y >= this.min_y
-				&& this.click_y < this.max_y) {
-			var50 = this.scanlines[this.click_y];
-			if (this.click_x >= var50.start_x >> 8 && this.click_x <= var50.end_x >> 8 && var50.start_x <= var50.end_x
-					&& !model.unpickable && model.is_local_player[face] == 0) {
-				this.picked_models[this.picked_cnt] = model;
-				this.picked_faces[this.picked_cnt] = face;
-				++this.picked_cnt;
+		if (picking_active && picked_cnt < max_picked && click_y >= min_y && click_y < max_y) {
+			Scanline line = scanlines[click_y];
+			
+			if (click_x >= line.start_x >> 8 && click_x <= line.end_x >> 8 && line.start_x <= line.end_x && !model.unpickable && model.is_local_player[face] == 0) {
+				picked_models[picked_cnt] = model;
+				picked_faces[picked_cnt] = face;
+				picked_cnt += 1;
 			}
 		}
 
